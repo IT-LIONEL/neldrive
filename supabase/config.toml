@@ -1,1 +1,4 @@
 project_id = "bfdlmbsvzyowkygmpvfa"
+
+[functions.download-shared-file]
+verify_jwt = false
