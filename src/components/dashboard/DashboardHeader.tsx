@@ -1,8 +1,9 @@
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Cloud, LogOut, Menu, Search } from "lucide-react";
+import { Cloud, LogOut, Menu, Search, User as UserIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,7 @@ const DashboardHeader = ({
   onSearchChange,
   onToggleSidebar,
 }: DashboardHeaderProps) => {
+  const navigate = useNavigate();
   const userInitials = user.email?.charAt(0).toUpperCase() || "U";
 
   return (
@@ -83,6 +85,10 @@ const DashboardHeader = ({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <UserIcon className="mr-2 h-4 w-4" />
+              Profile
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
