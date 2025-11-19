@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye } from "lucide-react";
+import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { formatBytes } from "@/lib/utils";
 import { format } from "date-fns";
 import FilePreviewDialog from "./FilePreviewDialog";
+import { RenameDialog } from "./RenameDialog";
+import { MoveDialog } from "./MoveDialog";
 
 interface File {
   id: string;
@@ -23,6 +25,7 @@ interface File {
   created_at: string;
   is_shareable: boolean;
   shareable_token: string;
+  folder_id: string | null;
 }
 
 interface Folder {
@@ -49,6 +52,9 @@ const FileGrid = ({
   onFolderDeleted,
 }: FileGridProps) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [renameItem, setRenameItem] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
+  const [moveItem, setMoveItem] = useState<{ id: string; name: string; type: "file" | "folder"; folderId: string | null } | null>(null);
+  const [draggedFile, setDraggedFile] = useState<string | null>(null);
 
   const handleDownload = async (file: File) => {
     try {
@@ -135,6 +141,79 @@ const FileGrid = ({
     }
   };
 
+  const handleDuplicate = async (file: File) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Download the file first
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from("user-files")
+        .download(file.storage_path);
+
+      if (downloadError) throw downloadError;
+
+      // Generate new filename
+      const nameParts = file.name.split(".");
+      const ext = nameParts.pop();
+      const baseName = nameParts.join(".");
+      const newName = `${baseName} (copy).${ext}`;
+      const newPath = `${user.id}/${Date.now()}_${newName}`;
+
+      // Upload the duplicate
+      const { error: uploadError } = await supabase.storage
+        .from("user-files")
+        .upload(newPath, fileData);
+
+      if (uploadError) throw uploadError;
+
+      // Create database record
+      const { error: dbError } = await supabase.from("files").insert({
+        name: newName,
+        file_type: file.file_type,
+        file_size: file.file_size,
+        storage_path: newPath,
+        user_id: user.id,
+        folder_id: file.folder_id,
+      });
+
+      if (dbError) throw dbError;
+
+      toast.success("File duplicated successfully");
+      onFileDeleted();
+    } catch (error: any) {
+      toast.error("Failed to duplicate file");
+    }
+  };
+
+  const handleDragStart = (fileId: string) => {
+    setDraggedFile(fileId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDropOnFolder = async (folderId: string) => {
+    if (!draggedFile) return;
+
+    try {
+      const { error } = await supabase
+        .from("files")
+        .update({ folder_id: folderId })
+        .eq("id", draggedFile);
+
+      if (error) throw error;
+
+      toast.success("File moved successfully");
+      onFileDeleted();
+    } catch (error: any) {
+      toast.error("Failed to move file");
+    } finally {
+      setDraggedFile(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -171,6 +250,11 @@ const FileGrid = ({
               key={item.id}
               className="p-4 hover:shadow-md transition-all cursor-pointer group"
               onClick={() => onFolderClick(item.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => {
+                e.stopPropagation();
+                handleDropOnFolder(item.id);
+              }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="p-3 bg-primary/10 rounded-lg">
@@ -190,6 +274,15 @@ const FileGrid = ({
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
+                        setRenameItem({ id: item.id, name: item.name, type: "folder" });
+                      }}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Rename
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleDeleteFolder(item.id);
                       }}
                       className="text-destructive"
@@ -206,7 +299,12 @@ const FileGrid = ({
               </p>
             </Card>
           ) : (
-            <Card key={item.id} className="p-4 hover:shadow-md transition-all group">
+            <Card
+              key={item.id}
+              className="p-4 hover:shadow-md transition-all group"
+              draggable
+              onDragStart={() => handleDragStart(item.id)}
+            >
               <div className="flex items-start justify-between mb-3">
                 <div className="p-3 bg-secondary rounded-lg">
                   <FileIcon className="h-6 w-6 text-secondary-foreground" />
@@ -229,6 +327,22 @@ const FileGrid = ({
                     <DropdownMenuItem onClick={() => handleDownload(item)}>
                       <Download className="mr-2 h-4 w-4" />
                       Download
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setRenameItem({ id: item.id, name: item.name, type: "file" })}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Rename
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setMoveItem({ id: item.id, name: item.name, type: "file", folderId: item.folder_id })}
+                    >
+                      <FolderInput className="mr-2 h-4 w-4" />
+                      Move
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDuplicate(item)}>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Duplicate
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleShare(item)}>
                       <Share2 className="mr-2 h-4 w-4" />
@@ -259,6 +373,43 @@ const FileGrid = ({
           file={previewFile}
           open={!!previewFile}
           onOpenChange={(open) => !open && setPreviewFile(null)}
+        />
+      )}
+
+      {renameItem && (
+        <RenameDialog
+          open={!!renameItem}
+          onOpenChange={(open) => !open && setRenameItem(null)}
+          itemId={renameItem.id}
+          currentName={renameItem.name}
+          type={renameItem.type}
+          onSuccess={() => {
+            setRenameItem(null);
+            if (renameItem.type === "file") {
+              onFileDeleted();
+            } else {
+              onFolderDeleted();
+            }
+          }}
+        />
+      )}
+
+      {moveItem && (
+        <MoveDialog
+          open={!!moveItem}
+          onOpenChange={(open) => !open && setMoveItem(null)}
+          itemId={moveItem.id}
+          itemName={moveItem.name}
+          type={moveItem.type}
+          currentFolderId={moveItem.folderId}
+          onSuccess={() => {
+            setMoveItem(null);
+            if (moveItem.type === "file") {
+              onFileDeleted();
+            } else {
+              onFolderDeleted();
+            }
+          }}
         />
       )}
     </>
