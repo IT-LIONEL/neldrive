@@ -2,6 +2,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Cloud, LogOut, Menu, Search } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +62,10 @@ const DashboardHeader = ({
           </div>
         </div>
 
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
@@ -85,6 +89,7 @@ const DashboardHeader = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );
