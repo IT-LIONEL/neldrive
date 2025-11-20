@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Mail } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
 import FileGrid from "@/components/dashboard/FileGrid";
@@ -16,6 +19,7 @@ const Dashboard = () => {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
 
   const { files, isLoading: filesLoading, refetch: refetchFiles } = useFiles(currentFolderId, searchQuery);
   const { folders, isLoading: foldersLoading, refetch: refetchFolders } = useFolders(currentFolderId, searchQuery);
@@ -62,6 +66,26 @@ const Dashboard = () => {
     toast.success("Folder created successfully!");
   };
 
+  const handleResendVerification = async () => {
+    if (!user?.email) return;
+    
+    setIsResendingEmail(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+      });
+
+      if (error) throw error;
+      
+      toast.success("Verification email sent! Check your inbox.");
+    } catch (error: any) {
+      toast.error("Failed to resend verification email");
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -86,6 +110,26 @@ const Dashboard = () => {
         
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <div className="p-6 max-w-7xl mx-auto">
+            {user && !user.email_confirmed_at && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Email Verification Required</AlertTitle>
+                <AlertDescription className="flex items-center justify-between">
+                  <span>Please verify your email address to access all features and ensure account security.</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendVerification}
+                    disabled={isResendingEmail}
+                    className="ml-4"
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    {isResendingEmail ? "Sending..." : "Resend Email"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <UploadZone
               currentFolderId={currentFolderId}
               onUploadSuccess={handleUploadSuccess}

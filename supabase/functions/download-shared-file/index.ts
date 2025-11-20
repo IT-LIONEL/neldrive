@@ -72,6 +72,24 @@ Deno.serve(async (req) => {
 
     console.log("File verified, downloading from storage:", storagePath);
 
+    // Log the download audit
+    try {
+      const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+      const userAgent = req.headers.get('user-agent') || 'unknown';
+      
+      await supabase.from('file_audit_logs').insert({
+        file_id: fileData.id,
+        user_id: fileData.user_id,
+        action: 'download',
+        ip_address: clientIp,
+        user_agent: userAgent,
+      });
+      console.log("Audit log created for shared file download");
+    } catch (auditError) {
+      console.error("Failed to create audit log:", auditError);
+      // Don't fail the download if audit logging fails
+    }
+
     // Download file from storage using service role
     const { data: fileBlob, error: downloadError } = await supabase.storage
       .from('user-files')
