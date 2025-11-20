@@ -10,6 +10,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
 import FileGrid from "@/components/dashboard/FileGrid";
 import UploadZone from "@/components/dashboard/UploadZone";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
 
@@ -110,6 +111,8 @@ const Dashboard = () => {
         
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <div className="p-6 max-w-7xl mx-auto">
+            <InstallPrompt />
+            
             {user && !user.email_confirmed_at && (
               <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
