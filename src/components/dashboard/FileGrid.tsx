@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput } from "lucide-react";
+import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +7,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatBytes } from "@/lib/utils";
@@ -55,9 +64,27 @@ const FileGrid = ({
   const [renameItem, setRenameItem] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [moveItem, setMoveItem] = useState<{ id: string; name: string; type: "file" | "folder"; folderId: string | null } | null>(null);
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "type">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const logAudit = async (fileId: string, action: string) => {
+    try {
+      await supabase.from("file_audit_logs").insert({
+        file_id: fileId,
+        action,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        ip_address: null,
+        user_agent: navigator.userAgent,
+      });
+    } catch (error) {
+      console.error("Failed to log audit:", error);
+    }
+  };
 
   const handleDownload = async (file: File) => {
     try {
+      await logAudit(file.id, "download");
+      
       const { data, error } = await supabase.storage
         .from("user-files")
         .download(file.storage_path);
@@ -79,6 +106,8 @@ const FileGrid = ({
 
   const handleDelete = async (fileId: string, storagePath: string) => {
     try {
+      await logAudit(fileId, "delete");
+      
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from("user-files")
@@ -119,6 +148,8 @@ const FileGrid = ({
 
   const handleShare = async (file: File) => {
     try {
+      await logAudit(file.id, "share");
+      
       const { error } = await supabase
         .from("files")
         .update({ is_shareable: !file.is_shareable })
@@ -224,9 +255,28 @@ const FileGrid = ({
     );
   }
 
+  const sortedFiles = [...files].sort((a, b) => {
+    let comparison = 0;
+    switch (sortBy) {
+      case "name":
+        comparison = a.name.localeCompare(b.name);
+        break;
+      case "date":
+        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        break;
+      case "size":
+        comparison = a.file_size - b.file_size;
+        break;
+      case "type":
+        comparison = a.file_type.localeCompare(b.file_type);
+        break;
+    }
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+
   const allItems = [
     ...folders.map(f => ({ ...f, type: "folder" as const })),
-    ...files.map(f => ({ ...f, type: "file" as const }))
+    ...sortedFiles.map(f => ({ ...f, type: "file" as const }))
   ];
 
   if (allItems.length === 0) {
@@ -243,6 +293,31 @@ const FileGrid = ({
 
   return (
     <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">
+          {allItems.length} {allItems.length === 1 ? 'item' : 'items'}
+        </h2>
+        <div className="flex items-center gap-2">
+          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="date">Date</SelectItem>
+              <SelectItem value="size">Size</SelectItem>
+              <SelectItem value="type">Type</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {allItems.map((item) =>
           item.type === "folder" ? (
