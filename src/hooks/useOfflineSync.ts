@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getAllOfflineFiles } from '@/lib/offlineStorage';
+import { getAllOfflineFiles, getUploadQueue, removeFromUploadQueue } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
 
 export const useOfflineSync = () => {
@@ -32,6 +32,54 @@ export const useOfflineSync = () => {
 
           if (syncedCount > 0) {
             toast.success(`Back online! ${syncedCount} offline ${syncedCount === 1 ? 'file' : 'files'} synced`);
+          }
+        }
+
+        // Process queued uploads
+        const queuedUploads = await getUploadQueue();
+        
+        if (queuedUploads.length > 0) {
+          toast.info(`Uploading ${queuedUploads.length} queued ${queuedUploads.length === 1 ? 'file' : 'files'}...`);
+          
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          let successCount = 0;
+          
+          for (const upload of queuedUploads) {
+            try {
+              // Upload to storage
+              const fileExt = upload.name.split(".").pop();
+              const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+              
+              const { error: uploadError } = await supabase.storage
+                .from("user-files")
+                .upload(fileName, upload.data);
+
+              if (uploadError) throw uploadError;
+
+              // Create database record
+              const { error: dbError } = await supabase.from("files").insert({
+                name: upload.name,
+                folder_id: upload.folder_id,
+                user_id: user.id,
+                storage_path: fileName,
+                file_type: upload.file_type,
+                file_size: upload.file_size,
+              });
+
+              if (dbError) throw dbError;
+
+              // Remove from queue
+              await removeFromUploadQueue(upload.id);
+              successCount++;
+            } catch (error) {
+              console.error('Failed to upload queued file:', error);
+            }
+          }
+
+          if (successCount > 0) {
+            toast.success(`${successCount} ${successCount === 1 ? 'file' : 'files'} uploaded successfully!`);
           }
         }
       } catch (error) {

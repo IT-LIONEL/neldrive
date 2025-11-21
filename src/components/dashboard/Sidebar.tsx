@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, Folder, Plus } from "lucide-react";
+import { Home, Folder, Plus, WifiOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useFolders } from "@/hooks/useFolders";
 import {
   Dialog,
@@ -25,6 +26,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: SidebarProps) => {
+  const navigate = useNavigate();
   const { folders } = useFolders(null, "");
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -70,6 +72,15 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
             >
               <Home className="mr-2 h-4 w-4" />
               My Drive
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/offline-files")}
+            >
+              <WifiOff className="mr-2 h-4 w-4" />
+              Offline Files
             </Button>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
