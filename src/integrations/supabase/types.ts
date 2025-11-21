@@ -59,6 +59,7 @@ export type Database = {
           file_type: string
           folder_id: string | null
           id: string
+          is_offline: boolean | null
           is_shareable: boolean | null
           name: string
           shareable_token: string | null
@@ -72,6 +73,7 @@ export type Database = {
           file_type: string
           folder_id?: string | null
           id?: string
+          is_offline?: boolean | null
           is_shareable?: boolean | null
           name: string
           shareable_token?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           file_type?: string
           folder_id?: string | null
           id?: string
+          is_offline?: boolean | null
           is_shareable?: boolean | null
           name?: string
           shareable_token?: string | null
