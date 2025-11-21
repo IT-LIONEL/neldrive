@@ -13,6 +13,7 @@ import UploadZone from "@/components/dashboard/UploadZone";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const Dashboard = () => {
 
   const { files, isLoading: filesLoading, refetch: refetchFiles } = useFiles(currentFolderId, searchQuery);
   const { folders, isLoading: foldersLoading, refetch: refetchFolders } = useFolders(currentFolderId, searchQuery);
+  
+  // Enable offline sync
+  useOfflineSync();
 
   useEffect(() => {
     // Check for existing session

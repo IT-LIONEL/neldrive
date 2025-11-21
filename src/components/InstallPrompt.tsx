@@ -36,7 +36,7 @@ export const InstallPrompt = () => {
       if (!isInstalled && !isDismissed) {
         setShowPrompt(true);
       }
-    }, 3000);
+    }, 10000);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
