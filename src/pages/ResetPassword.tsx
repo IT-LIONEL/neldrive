@@ -2,17 +2,27 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Cloud } from "lucide-react";
+import { Cloud, Copy, Check } from "lucide-react";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [passwordSet, setPasswordSet] = useState(false);
+
+  const generatePassword = (email: string) => {
+    const emailPrefix = email.split("@")[0].substring(0, 3);
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+    let randomPart = "";
+    for (let i = 0; i < 5; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `${emailPrefix}${randomPart}`;
+  };
 
   useEffect(() => {
     // Check if we have a valid session from the reset link
@@ -20,20 +30,17 @@ const ResetPassword = () => {
       if (!session) {
         toast.error("Invalid or expired reset link");
         navigate("/auth");
+      } else if (session.user?.email) {
+        setUserEmail(session.user.email);
+        const newPassword = generatePassword(session.user.email);
+        setGeneratedPassword(newPassword);
       }
     });
   }, [navigate]);
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+  const handleSetPassword = async () => {
+    if (!generatedPassword) {
+      toast.error("No password generated");
       return;
     }
 
@@ -41,18 +48,25 @@ const ResetPassword = () => {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password,
+        password: generatedPassword,
       });
 
       if (error) throw error;
 
-      toast.success("Password updated successfully!");
-      navigate("/auth");
+      setPasswordSet(true);
+      toast.success("Password updated successfully! Please save your new password.");
     } catch (error: any) {
       toast.error(error.message || "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(generatedPassword);
+    setCopied(true);
+    toast.success("Password copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -72,34 +86,57 @@ const ResetPassword = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleResetPassword} className="space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+              <p className="text-sm text-muted-foreground">
+                A secure password has been generated for your account: <span className="font-semibold">{userEmail}</span>
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Updating..." : "Update Password"}
-            </Button>
+            
+            {generatedPassword && (
+              <div className="space-y-2">
+                <div className="p-4 bg-muted rounded-lg border border-border">
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-lg font-mono font-semibold flex-1">
+                      {generatedPassword}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCopyPassword}
+                      className="flex-shrink-0"
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This password contains part of your email for easy management. Make sure to save it securely.
+                </p>
+              </div>
+            )}
+
+            {!passwordSet ? (
+              <Button 
+                onClick={handleSetPassword} 
+                className="w-full" 
+                disabled={isLoading || !generatedPassword}
+              >
+                {isLoading ? "Setting Password..." : "Confirm & Set Password"}
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => navigate("/auth")} 
+                className="w-full"
+              >
+                Continue to Sign In
+              </Button>
+            )}
+            
             <Button
               type="button"
               variant="ghost"
@@ -108,7 +145,7 @@ const ResetPassword = () => {
             >
               Back to Sign In
             </Button>
-          </form>
+          </div>
         </CardContent>
       </Card>
     </div>
