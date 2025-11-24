@@ -93,11 +93,20 @@ const FileGrid = ({
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
+      // Create blob with correct MIME type
+      const blob = new Blob([data], { type: file.file_type });
+      const url = URL.createObjectURL(blob);
+      
+      // Create download link with proper headers
       const a = document.createElement("a");
       a.href = url;
       a.download = file.name;
+      a.setAttribute("type", file.file_type);
+      
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
+      
       URL.revokeObjectURL(url);
       
       toast.success("File downloaded successfully");
