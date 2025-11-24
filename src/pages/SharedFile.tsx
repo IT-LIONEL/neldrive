@@ -94,13 +94,20 @@ const SharedFile = () => {
       if (error) throw error;
 
       if (data && data.file) {
-        // Create blob and download
+        // Create blob with correct MIME type
         const blob = new Blob([new Uint8Array(data.file)], { type: file.file_type });
         const url = URL.createObjectURL(blob);
+        
+        // Create download link with proper attributes
         const a = document.createElement("a");
         a.href = url;
         a.download = file.name;
+        a.setAttribute("type", file.file_type);
+        
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+        
         URL.revokeObjectURL(url);
         toast.success("File downloaded successfully");
       }
