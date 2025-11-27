@@ -49,6 +49,9 @@ const ResetPassword = () => {
     try {
       const { error } = await supabase.auth.updateUser({
         password: generatedPassword,
+        data: {
+          needs_password_change: true
+        }
       });
 
       if (error) throw error;

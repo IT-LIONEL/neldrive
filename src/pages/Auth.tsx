@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Cloud } from "lucide-react";
 
@@ -15,6 +16,18 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showPasswordChangePrompt, setShowPasswordChangePrompt] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard");
+      }
+    });
+  }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,19 +58,72 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      toast.success("Signed in successfully!");
-      navigate("/dashboard");
+      // Check if user needs to change password
+      if (data.user?.user_metadata?.needs_password_change) {
+        setShowPasswordChangePrompt(true);
+        toast.success("Signed in successfully!");
+      } else {
+        toast.success("Signed in successfully!");
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+        data: {
+          needs_password_change: false
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Password changed successfully!");
+      setShowPasswordChangePrompt(false);
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to change password");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleSkipPasswordChange = async () => {
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          needs_password_change: false
+        }
+      });
+      setShowPasswordChangePrompt(false);
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error("Failed to skip");
     }
   };
 
@@ -83,8 +149,52 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <>
+      <AlertDialog open={showPasswordChangePrompt} onOpenChange={setShowPasswordChangePrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Your Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              You're currently using a generated password. We recommend changing it to something memorable.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={6}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={6}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleSkipPasswordChange}>
+              Skip for Now
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleChangePassword} disabled={changingPassword}>
+              {changingPassword ? "Changing..." : "Change Password"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-background p-4">
+        <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center">
@@ -204,6 +314,7 @@ const Auth = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 
