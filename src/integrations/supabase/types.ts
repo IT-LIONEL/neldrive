@@ -175,7 +175,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_file_download: {
+        Args: { p_token: string }
+        Returns: {
+          display_name: string
+          file_id: string
+          file_size: number
+          file_type: string
+          storage_path: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -6,15 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, FileIcon, Image, Video, FileText, Cloud, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { formatBytes } from "@/lib/utils";
-import { format } from "date-fns";
 
 interface FileData {
-  id: string;
-  name: string;
+  file_id: string;
+  display_name: string;
   file_type: string;
   file_size: number;
   storage_path: string;
-  created_at: string;
 }
 
 const SharedFile = () => {
@@ -33,25 +31,23 @@ const SharedFile = () => {
 
   const loadSharedFile = async () => {
     try {
+      // Use secure function that masks sensitive metadata
       const { data, error } = await supabase
-        .from("files")
-        .select("*")
-        .eq("shareable_token", token)
-        .eq("is_shareable", true)
-        .maybeSingle();
+        .rpc("get_shared_file_download", { p_token: token });
 
       if (error) throw error;
 
-      if (!data) {
-        toast.error("File not found or not shared");
+      if (!data || data.length === 0) {
+        toast.error("File not found, expired, or no longer shared");
         return;
       }
 
-      setFile(data);
+      const fileData = data[0] as FileData;
+      setFile(fileData);
 
       // Load preview for images and videos
-      if (data.file_type.startsWith("image/") || data.file_type.startsWith("video/")) {
-        loadPreview(data.storage_path);
+      if (fileData.file_type.startsWith("image/") || fileData.file_type.startsWith("video/")) {
+        loadPreview(fileData.storage_path);
       }
     } catch (error: any) {
       toast.error("Failed to load shared file");
@@ -101,7 +97,7 @@ const SharedFile = () => {
         // Create download link with proper attributes
         const a = document.createElement("a");
         a.href = url;
-        a.download = file.name;
+        a.download = file.display_name;
         a.setAttribute("type", file.file_type);
         
         document.body.appendChild(a);
@@ -185,11 +181,11 @@ const SharedFile = () => {
                   <FileIconComponent className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl">{file.name}</CardTitle>
+                  <CardTitle className="text-2xl">{file.display_name}</CardTitle>
                   <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
                     <span>{formatBytes(file.file_size)}</span>
                     <span>•</span>
-                    <span>{format(new Date(file.created_at), "MMM d, yyyy")}</span>
+                    <span>{file.file_type}</span>
                   </div>
                 </div>
               </div>
@@ -206,7 +202,7 @@ const SharedFile = () => {
                 {isImage && (
                   <img
                     src={previewUrl}
-                    alt={file.name}
+                    alt={file.display_name}
                     className="max-w-full max-h-[600px] object-contain rounded"
                   />
                 )}
