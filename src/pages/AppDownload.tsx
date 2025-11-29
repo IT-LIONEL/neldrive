@@ -5,7 +5,7 @@ import { Monitor, Apple, Download, CloudOff, Zap, Shield, Github, CheckCircle } 
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-const GITHUB_REPO = "aby-developer/neldrive-78526942";
+const GITHUB_REPO = "IT-LIONEL/neldrive";
 const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
 type Platform = "windows" | "macos" | "linux" | "unknown";
