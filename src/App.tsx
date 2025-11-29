@@ -10,6 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Install from "./pages/Install";
 import SharedFile from "./pages/SharedFile";
 import OfflineFiles from "./pages/OfflineFiles";
+import AppDownload from "./pages/AppDownload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/install" element={<Install />} />
           <Route path="/offline-files" element={<OfflineFiles />} />
+          <Route path="/appdownload" element={<AppDownload />} />
           <Route path="/share/:token" element={<SharedFile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
