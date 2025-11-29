@@ -161,9 +161,17 @@ const FileGrid = ({
     try {
       await logAudit(file.id, "share");
       
+      // Set expiration to 7 days from now when enabling sharing
+      const shareExpiresAt = !file.is_shareable 
+        ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+      
       const { error } = await supabase
         .from("files")
-        .update({ is_shareable: !file.is_shareable })
+        .update({ 
+          is_shareable: !file.is_shareable,
+          share_expires_at: shareExpiresAt
+        })
         .eq("id", file.id);
 
       if (error) throw error;
@@ -172,7 +180,7 @@ const FileGrid = ({
       
       if (!file.is_shareable) {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("Share link copied to clipboard!");
+        toast.success("Share link copied! Expires in 7 days.");
       } else {
         toast.success("File sharing disabled");
       }
