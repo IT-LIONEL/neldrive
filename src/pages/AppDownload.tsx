@@ -1,15 +1,42 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Monitor, Apple, Download, CloudOff, Zap, Shield, Github } from "lucide-react";
+import { Monitor, Apple, Download, CloudOff, Zap, Shield, Github, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 const GITHUB_REPO = "aby-developer/neldrive-78526942";
 const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
+type Platform = "windows" | "macos" | "linux" | "unknown";
+
+const detectOS = (): Platform => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const platform = navigator.platform?.toLowerCase() || "";
+  
+  if (userAgent.includes("win") || platform.includes("win")) {
+    return "windows";
+  }
+  if (userAgent.includes("mac") || platform.includes("mac")) {
+    return "macos";
+  }
+  if (userAgent.includes("linux") || platform.includes("linux")) {
+    return "linux";
+  }
+  return "unknown";
+};
+
 const AppDownload = () => {
+  const [detectedOS, setDetectedOS] = useState<Platform>("unknown");
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    setDetectedOS(detectOS());
+  }, []);
+
   const platforms = [
     {
+      id: "windows" as Platform,
       name: "Windows",
       icon: Monitor,
       description: "Windows 10/11 (64-bit)",
@@ -17,6 +44,7 @@ const AppDownload = () => {
       fileName: "NelDrive-Setup.exe",
     },
     {
+      id: "macos" as Platform,
       name: "macOS",
       icon: Apple,
       description: "macOS 10.15+ (Intel & Apple Silicon)",
@@ -24,6 +52,7 @@ const AppDownload = () => {
       fileName: "NelDrive.dmg",
     },
     {
+      id: "linux" as Platform,
       name: "Linux",
       icon: Monitor,
       description: "Ubuntu, Debian, Fedora",
@@ -51,10 +80,14 @@ const AppDownload = () => {
   ];
 
   const handleDownload = (platform: typeof platforms[0]) => {
-    // Open download link in new tab
+    setDownloading(true);
     window.open(platform.downloadUrl, "_blank");
     toast.success(`Downloading ${platform.fileName}...`);
+    setTimeout(() => setDownloading(false), 2000);
   };
+
+  const currentPlatform = platforms.find(p => p.id === detectedOS) || platforms[0];
+  const otherPlatforms = platforms.filter(p => p.id !== detectedOS);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -84,7 +117,7 @@ const AppDownload = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section with Auto-detected Download */}
       <section className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
           Download NelDrive Desktop
@@ -92,31 +125,55 @@ const AppDownload = () => {
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
           Get the full desktop experience with offline access, faster uploads, and native system integration.
         </p>
+
+        {/* Main Download Button for Detected OS */}
+        <Card className="max-w-md mx-auto mb-8 border-primary/50 shadow-lg">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
+              <CheckCircle className="w-4 h-4 text-primary" />
+              <span>Detected: {currentPlatform.name}</span>
+            </div>
+            <Button 
+              size="lg" 
+              className="w-full gap-2 text-lg py-6"
+              onClick={() => handleDownload(currentPlatform)}
+              disabled={downloading}
+            >
+              <Download className="w-5 h-5" />
+              {downloading ? "Starting download..." : `Download for ${currentPlatform.name}`}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-3">{currentPlatform.fileName}</p>
+          </CardContent>
+        </Card>
       </section>
 
-      {/* Download Cards */}
+      {/* Other Platforms */}
       <section className="container mx-auto px-4 pb-16">
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {platforms.map((platform) => (
-            <Card key={platform.name} className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 hover:border-primary/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardHeader className="text-center pb-2">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <platform.icon className="w-8 h-8 text-primary" />
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          Not on {currentPlatform.name}? Download for other platforms:
+        </p>
+        <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          {otherPlatforms.map((platform) => (
+            <Card key={platform.name} className="relative overflow-hidden group hover:shadow-md transition-all duration-300 hover:border-primary/30">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <platform.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium">{platform.name}</h3>
+                    <p className="text-xs text-muted-foreground">{platform.description}</p>
+                  </div>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => handleDownload(platform)}
+                  >
+                    <Download className="w-4 h-4" />
+                    Download
+                  </Button>
                 </div>
-                <CardTitle className="text-xl">{platform.name}</CardTitle>
-                <CardDescription>{platform.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Button 
-                  className="w-full gap-2" 
-                  size="lg"
-                  onClick={() => handleDownload(platform)}
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </Button>
-                <p className="text-xs text-muted-foreground mt-3">{platform.fileName}</p>
               </CardContent>
             </Card>
           ))}
