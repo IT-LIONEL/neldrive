@@ -62,6 +62,7 @@ export type Database = {
           is_offline: boolean | null
           is_shareable: boolean | null
           name: string
+          share_expires_at: string | null
           shareable_token: string | null
           storage_path: string
           updated_at: string | null
@@ -76,6 +77,7 @@ export type Database = {
           is_offline?: boolean | null
           is_shareable?: boolean | null
           name: string
+          share_expires_at?: string | null
           shareable_token?: string | null
           storage_path: string
           updated_at?: string | null
@@ -90,6 +92,7 @@ export type Database = {
           is_offline?: boolean | null
           is_shareable?: boolean | null
           name?: string
+          share_expires_at?: string | null
           shareable_token?: string | null
           storage_path?: string
           updated_at?: string | null
