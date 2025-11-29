@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Monitor, Apple, Download, CloudOff, Zap, Shield } from "lucide-react";
+import { Monitor, Apple, Download, CloudOff, Zap, Shield, Github } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+
+const GITHUB_REPO = "aby-developer/neldrive-78526942";
+const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
 const AppDownload = () => {
   const platforms = [
@@ -9,21 +13,21 @@ const AppDownload = () => {
       name: "Windows",
       icon: Monitor,
       description: "Windows 10/11 (64-bit)",
-      downloadUrl: "#", // Replace with actual download URL
+      downloadUrl: `https://github.com/${GITHUB_REPO}/releases/latest/download/NelDrive-Setup.exe`,
       fileName: "NelDrive-Setup.exe",
     },
     {
       name: "macOS",
       icon: Apple,
       description: "macOS 10.15+ (Intel & Apple Silicon)",
-      downloadUrl: "#", // Replace with actual download URL
+      downloadUrl: `https://github.com/${GITHUB_REPO}/releases/latest/download/NelDrive.dmg`,
       fileName: "NelDrive.dmg",
     },
     {
       name: "Linux",
       icon: Monitor,
       description: "Ubuntu, Debian, Fedora",
-      downloadUrl: "#", // Replace with actual download URL
+      downloadUrl: `https://github.com/${GITHUB_REPO}/releases/latest/download/NelDrive.AppImage`,
       fileName: "NelDrive.AppImage",
     },
   ];
@@ -46,6 +50,12 @@ const AppDownload = () => {
     },
   ];
 
+  const handleDownload = (platform: typeof platforms[0]) => {
+    // Open download link in new tab
+    window.open(platform.downloadUrl, "_blank");
+    toast.success(`Downloading ${platform.fileName}...`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
@@ -57,9 +67,20 @@ const AppDownload = () => {
             </div>
             <span className="font-semibold text-lg">NelDrive</span>
           </Link>
-          <Link to="/auth">
-            <Button variant="outline">Sign In</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <a 
+              href={`https://github.com/${GITHUB_REPO}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="ghost" size="icon">
+                <Github className="w-5 h-5" />
+              </Button>
+            </a>
+            <Link to="/auth">
+              <Button variant="outline">Sign In</Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -87,7 +108,11 @@ const AppDownload = () => {
                 <CardDescription>{platform.description}</CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <Button className="w-full gap-2" size="lg">
+                <Button 
+                  className="w-full gap-2" 
+                  size="lg"
+                  onClick={() => handleDownload(platform)}
+                >
                   <Download className="w-4 h-4" />
                   Download
                 </Button>
@@ -95,6 +120,18 @@ const AppDownload = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+        
+        {/* All releases link */}
+        <div className="text-center mt-8">
+          <a 
+            href={GITHUB_RELEASES_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            View all releases on GitHub →
+          </a>
         </div>
       </section>
 
