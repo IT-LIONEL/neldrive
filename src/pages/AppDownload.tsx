@@ -79,6 +79,27 @@ const AppDownload = () => {
     },
   ];
 
+  const installationSteps = {
+    windows: [
+      "Download the NelDrive-Setup.exe file",
+      "Double-click the installer to run it",
+      "Follow the installation wizard prompts",
+      "Launch NelDrive from the Start Menu or Desktop shortcut",
+    ],
+    macos: [
+      "Download the NelDrive.dmg file",
+      "Double-click to open the disk image",
+      "Drag NelDrive to your Applications folder",
+      "Launch from Applications (you may need to right-click → Open for first launch)",
+    ],
+    linux: [
+      "Download the NelDrive.AppImage file",
+      "Make it executable: chmod +x NelDrive.AppImage",
+      "Run the AppImage: ./NelDrive.AppImage",
+      "Optional: Use AppImageLauncher for desktop integration",
+    ],
+  };
+
   const handleDownload = (platform: typeof platforms[0]) => {
     setDownloading(true);
     window.open(platform.downloadUrl, "_blank");
@@ -143,6 +164,26 @@ const AppDownload = () => {
               {downloading ? "Starting download..." : `Download for ${currentPlatform.name}`}
             </Button>
             <p className="text-xs text-muted-foreground mt-3">{currentPlatform.fileName}</p>
+          </CardContent>
+        </Card>
+
+        {/* Installation Instructions */}
+        <Card className="max-w-lg mx-auto border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Installation Instructions</CardTitle>
+            <CardDescription>Follow these steps after downloading</CardDescription>
+          </CardHeader>
+          <CardContent className="text-left">
+            <ol className="space-y-2">
+              {installationSteps[currentPlatform.id as keyof typeof installationSteps]?.map((step, index) => (
+                <li key={index} className="flex gap-3 text-sm text-muted-foreground">
+                  <span className="flex-shrink-0 w-6 h-6 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-medium">
+                    {index + 1}
+                  </span>
+                  <span className="pt-0.5">{step}</span>
+                </li>
+              ))}
+            </ol>
           </CardContent>
         </Card>
       </section>
