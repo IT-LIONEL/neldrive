@@ -8,6 +8,7 @@ const corsHeaders = {
 interface RequestBody {
   token: string;
   storagePath: string;
+  folderToken?: string;
 }
 
 Deno.serve(async (req) => {
@@ -25,10 +26,10 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body
-    const { token, storagePath }: RequestBody = await req.json();
+    const { token, storagePath, folderToken }: RequestBody = await req.json();
 
-    if (!token || !storagePath) {
-      console.error("Missing token or storagePath");
+    if (!storagePath || (!token && !folderToken)) {
+      console.error("Missing required parameters");
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
         { 
@@ -38,36 +39,96 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Checking if file is shareable with token:", token);
+    let fileData: any = null;
 
-    // Verify the file is shareable
-    const { data: fileData, error: fileError } = await supabase
-      .from('files')
-      .select('*')
-      .eq('shareable_token', token)
-      .eq('is_shareable', true)
-      .maybeSingle();
+    // Check if this is a folder-based share
+    if (folderToken) {
+      console.log("Checking folder share with token:", folderToken);
+      
+      // Verify the folder is shareable and get the file
+      const { data: folderData, error: folderError } = await supabase
+        .from('folders')
+        .select('id, share_expires_at, is_shareable')
+        .eq('shareable_token', folderToken)
+        .eq('is_shareable', true)
+        .single();
 
-    if (fileError) {
-      console.error("Error fetching file metadata:", fileError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to verify file' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
+      if (folderError || !folderData) {
+        console.error("Folder not found or not shareable");
+        return new Response(
+          JSON.stringify({ error: 'Folder not found or not shared' }),
+          { 
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
 
-    if (!fileData) {
-      console.error("File not found or not shareable");
-      return new Response(
-        JSON.stringify({ error: 'File not found or not shared' }),
-        { 
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+      // Check expiration
+      if (folderData.share_expires_at && new Date(folderData.share_expires_at) < new Date()) {
+        return new Response(
+          JSON.stringify({ error: 'Share link has expired' }),
+          { 
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // Get file from the shared folder
+      const { data: file, error: fileError } = await supabase
+        .from('files')
+        .select('*')
+        .eq('folder_id', folderData.id)
+        .eq('storage_path', storagePath)
+        .single();
+
+      if (fileError || !file) {
+        console.error("File not found in shared folder");
+        return new Response(
+          JSON.stringify({ error: 'File not found in shared folder' }),
+          { 
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      fileData = file;
+    } else {
+      console.log("Checking file share with token:", token);
+
+      // Verify the file is shareable directly
+      const { data: file, error: fileError } = await supabase
+        .from('files')
+        .select('*')
+        .eq('shareable_token', token)
+        .eq('is_shareable', true)
+        .maybeSingle();
+
+      if (fileError) {
+        console.error("Error fetching file metadata:", fileError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify file' }),
+          { 
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      if (!file) {
+        console.error("File not found or not shareable");
+        return new Response(
+          JSON.stringify({ error: 'File not found or not shared' }),
+          { 
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      fileData = file;
     }
 
     console.log("File verified, downloading from storage:", storagePath);
