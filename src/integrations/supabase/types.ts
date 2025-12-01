@@ -110,6 +110,7 @@ export type Database = {
       }
       folders: {
         Row: {
+          auto_lock_minutes: number | null
           created_at: string | null
           id: string
           is_locked: boolean | null
@@ -124,6 +125,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_lock_minutes?: number | null
           created_at?: string | null
           id?: string
           is_locked?: boolean | null
@@ -138,6 +140,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_lock_minutes?: number | null
           created_at?: string | null
           id?: string
           is_locked?: boolean | null
