@@ -1,7 +1,7 @@
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, Menu, Search, User as UserIcon, Settings } from "lucide-react";
+import { LogOut, Menu, Search, User as UserIcon, Settings, Terminal } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import {
@@ -33,13 +33,13 @@ const DashboardHeader = ({
   const userInitials = user.email?.charAt(0).toUpperCase() || "U";
 
   return (
-    <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50">
+    <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-primary/20">
       <div className="flex items-center gap-4 px-4 lg:px-6 py-3">
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="lg:hidden hover:bg-primary/10"
+          className="lg:hidden hover:bg-primary/10 hover:text-primary"
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -47,26 +47,31 @@ const DashboardHeader = ({
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 rounded-xl gradient-primary blur opacity-40" />
+            <div className="absolute inset-0 rounded-xl bg-primary blur-md opacity-50" />
             <img 
               src="/icon-192x192.png" 
               alt="NelTech" 
-              className="relative h-10 w-10 rounded-xl"
+              className="relative h-10 w-10 rounded-xl border border-primary/30"
             />
           </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:block">
-            NelTech
-          </h1>
+          <div className="hidden sm:block">
+            <h1 className="text-xl font-bold font-mono text-primary text-glow">
+              NelTech
+            </h1>
+            <p className="text-[10px] font-mono text-muted-foreground -mt-1">
+              // secure_cloud v2.0
+            </p>
+          </div>
         </div>
 
         {/* Search */}
         <div className="flex-1 max-w-xl mx-auto">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
             <Input
               type="search"
-              placeholder="Search files and folders..."
-              className="w-full pl-10 h-10 bg-muted/50 border-border/50 focus:bg-background focus:border-primary/50 transition-all"
+              placeholder="search --files --folders..."
+              className="w-full pl-10 h-10 font-mono text-sm bg-muted/50 border-primary/20 focus:bg-background focus:border-primary focus:shadow-glow transition-all"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -79,44 +84,44 @@ const DashboardHeader = ({
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-primary/20 transition-all">
-                <Avatar className="h-9 w-9 border-2 border-primary/20">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-primary/50 transition-all">
+                <Avatar className="h-9 w-9 border-2 border-primary/30">
                   <AvatarImage src="" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-mono font-bold">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 border-border/50 bg-card/95 backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="w-56 border-primary/20 bg-card/95 backdrop-blur-xl font-mono">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">My Account</p>
+                  <p className="text-sm font-medium text-primary">user@neltech</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuSeparator className="bg-primary/20" />
               <DropdownMenuItem 
                 onClick={() => navigate("/profile")}
-                className="cursor-pointer hover:bg-primary/10"
+                className="cursor-pointer hover:bg-primary/10 hover:text-primary"
               >
                 <UserIcon className="mr-2 h-4 w-4" />
-                Profile
+                profile --view
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => navigate("/appdownload")}
-                className="cursor-pointer hover:bg-primary/10"
+                className="cursor-pointer hover:bg-primary/10 hover:text-primary"
               >
                 <Settings className="mr-2 h-4 w-4" />
-                Download App
+                download --app
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuSeparator className="bg-primary/20" />
               <DropdownMenuItem 
                 onClick={onSignOut}
                 className="cursor-pointer text-destructive focus:text-destructive hover:bg-destructive/10"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign out
+                exit --logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -118,22 +118,22 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
   return (
     <Card
       {...getRootProps()}
-      className={`mb-6 p-6 border-2 border-dashed transition-all cursor-pointer rounded-xl ${
+      className={`mb-6 p-6 border-2 border-dashed transition-all cursor-pointer rounded-xl font-mono ${
         isDragActive
-          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-          : "border-border/50 hover:border-primary/50 hover:bg-muted/30"
+          ? "border-primary bg-primary/5 shadow-glow"
+          : "border-primary/30 hover:border-primary/60 hover:bg-muted/30"
       }`}
     >
       <input {...getInputProps()} />
       <div className="flex flex-col items-center justify-center text-center space-y-3">
         {uploading ? (
           <>
-            <div className="p-4 bg-primary/10 rounded-full animate-pulse">
+            <div className="p-4 bg-primary/20 rounded-full animate-pulse-glow">
               <CloudUpload className="h-8 w-8 text-primary" />
             </div>
             <div className="w-full max-w-xs space-y-2">
-              <p className="text-sm font-medium">
-                Uploading... {Math.round(progress)}%
+              <p className="text-sm font-medium text-primary">
+                uploading... {Math.round(progress)}%
               </p>
               <Progress value={progress} className="h-2" />
             </div>
@@ -141,26 +141,26 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
         ) : (
           <>
             <div className={`p-4 rounded-full transition-all ${
-              isDragActive ? "bg-primary/20 scale-110" : "bg-muted/50"
+              isDragActive ? "bg-primary/20 scale-110 shadow-glow" : "bg-muted/50 border border-primary/20"
             }`}>
               <Upload className={`h-8 w-8 transition-colors ${
                 isDragActive ? "text-primary" : "text-muted-foreground"
               }`} />
             </div>
             <div>
-              <p className="text-sm font-medium">
-                {isDragActive ? "Drop files here" : "Drag & drop files here"}
+              <p className="text-sm font-medium text-primary">
+                {isDragActive ? "$ drop files here..." : "$ drag & drop files"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                or click to browse
+                // or click to browse
               </p>
             </div>
             <Button 
               variant="outline" 
               size="sm"
-              className="mt-2 border-primary/30 hover:bg-primary/10 hover:text-primary"
+              className="mt-2 border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary font-mono"
             >
-              Choose Files
+              select --files
             </Button>
           </>
         )}

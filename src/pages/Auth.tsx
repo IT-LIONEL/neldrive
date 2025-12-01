@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Shield, Lock, Mail } from "lucide-react";
+import { Shield, Lock, Mail, Terminal } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -150,19 +150,19 @@ const Auth = () => {
   return (
     <>
       <AlertDialog open={showPasswordChangePrompt} onOpenChange={setShowPasswordChangePrompt}>
-        <AlertDialogContent className="border-border/50">
+        <AlertDialogContent className="border-primary/30 bg-card/95 font-mono">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-primary" />
-              Change Your Password
+            <AlertDialogTitle className="flex items-center gap-2 text-primary">
+              <Lock className="h-5 w-5" />
+              passwd --change
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              You're currently using a generated password. We recommend changing it to something memorable.
+            <AlertDialogDescription className="text-muted-foreground">
+              // Update your generated password to something memorable
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
+              <Label htmlFor="new-password" className="text-xs text-primary uppercase">New_Password</Label>
               <Input
                 id="new-password"
                 type="password"
@@ -170,11 +170,11 @@ const Auth = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 minLength={6}
-                className="h-11"
+                className="h-11 font-mono bg-muted/50 border-primary/30 focus:border-primary"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Label htmlFor="confirm-password" className="text-xs text-primary uppercase">Confirm_Password</Label>
               <Input
                 id="confirm-password"
                 type="password"
@@ -182,25 +182,25 @@ const Auth = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 minLength={6}
-                className="h-11"
+                className="h-11 font-mono bg-muted/50 border-primary/30 focus:border-primary"
               />
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleSkipPasswordChange}>
-              Skip for Now
+            <AlertDialogCancel onClick={handleSkipPasswordChange} className="font-mono">
+              skip --later
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleChangePassword} disabled={changingPassword}>
-              {changingPassword ? "Changing..." : "Change Password"}
+            <AlertDialogAction onClick={handleChangePassword} disabled={changingPassword} className="font-mono bg-primary">
+              {changingPassword ? "Processing..." : "execute --change"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen flex items-center justify-center gradient-bg p-4 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center gradient-bg p-4 relative overflow-hidden scanline">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-pulse-glow" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
         </div>
@@ -210,87 +210,90 @@ const Auth = () => {
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center mb-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-2xl gradient-primary blur-xl opacity-50" />
+                <div className="absolute inset-0 rounded-2xl bg-primary blur-xl opacity-50" />
                 <img 
                   src="/icon-192x192.png" 
                   alt="NelTech Logo" 
-                  className="relative h-20 w-20 rounded-2xl shadow-lg"
+                  className="relative h-20 w-20 rounded-2xl shadow-glow border border-primary/30"
                 />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">NelTech</h1>
-            <p className="text-muted-foreground mt-2">Secure Cloud Storage</p>
+            <h1 className="text-3xl font-bold font-mono text-primary text-glow tracking-tight">NelTech</h1>
+            <p className="text-muted-foreground mt-2 font-mono text-sm">// secure_cloud_storage v2.0</p>
           </div>
 
-          <Card className="border-border/50 shadow-lg backdrop-blur-sm bg-card/95">
+          <Card className="border-primary/20 shadow-glow backdrop-blur-sm bg-card/95">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-xl font-semibold">Welcome back</CardTitle>
-              <CardDescription>
-                Sign in to access your files
+              <CardTitle className="text-xl font-semibold font-mono text-primary flex items-center justify-center gap-2">
+                <Terminal className="h-5 w-5" />
+                access_terminal
+              </CardTitle>
+              <CardDescription className="font-mono text-xs">
+                // authenticate to continue
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               {showResetPassword ? (
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email" className="text-sm font-medium">Email Address</Label>
+                    <Label htmlFor="reset-email" className="text-xs font-mono text-primary uppercase">Email_Address</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                       <Input
                         id="reset-email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder="user@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="h-11 pl-10"
+                        className="h-11 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow"
                       />
                     </div>
                   </div>
-                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                    {isLoading ? "Sending..." : "Send Reset Link"}
+                  <Button type="submit" className="w-full h-11 font-mono bg-primary hover:bg-primary/90 hover:shadow-glow" disabled={isLoading}>
+                    {isLoading ? "Sending..." : "send --reset-link"}
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
-                    className="w-full"
+                    className="w-full font-mono hover:text-primary"
                     onClick={() => setShowResetPassword(false)}
                   >
-                    Back to Sign In
+                    ← back --login
                   </Button>
                 </form>
               ) : (
                 <Tabs defaultValue="signin" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6 h-11 p-1 bg-muted/50">
-                    <TabsTrigger value="signin" className="h-9 font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      Sign In
+                  <TabsList className="grid w-full grid-cols-2 mb-6 h-11 p-1 bg-muted/50 border border-primary/20">
+                    <TabsTrigger value="signin" className="h-9 font-mono text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow">
+                      login
                     </TabsTrigger>
-                    <TabsTrigger value="signup" className="h-9 font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      Sign Up
+                    <TabsTrigger value="signup" className="h-9 font-mono text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow">
+                      register
                     </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="signin">
                     <form onSubmit={handleSignIn} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="signin-email" className="text-sm font-medium">Email Address</Label>
+                        <Label htmlFor="signin-email" className="text-xs font-mono text-primary uppercase">Email_Address</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             id="signin-email"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="user@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="h-11 pl-10"
+                            className="h-11 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signin-password" className="text-sm font-medium">Password</Label>
+                        <Label htmlFor="signin-password" className="text-xs font-mono text-primary uppercase">Password</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             id="signin-password"
                             type="password"
@@ -298,20 +301,20 @@ const Auth = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="h-11 pl-10"
+                            className="h-11 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow"
                           />
                         </div>
                       </div>
-                      <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                        {isLoading ? "Signing in..." : "Sign In"}
+                      <Button type="submit" className="w-full h-11 font-mono bg-primary hover:bg-primary/90 hover:shadow-glow" disabled={isLoading}>
+                        {isLoading ? "Authenticating..." : "login --execute"}
                       </Button>
                       <Button
                         type="button"
                         variant="link"
-                        className="w-full text-sm text-muted-foreground hover:text-primary"
+                        className="w-full text-xs font-mono text-muted-foreground hover:text-primary"
                         onClick={() => setShowResetPassword(true)}
                       >
-                        Forgot Password?
+                        forgot --password ?
                       </Button>
                     </form>
                   </TabsContent>
@@ -319,24 +322,24 @@ const Auth = () => {
                   <TabsContent value="signup">
                     <form onSubmit={handleSignUp} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="signup-email" className="text-sm font-medium">Email Address</Label>
+                        <Label htmlFor="signup-email" className="text-xs font-mono text-primary uppercase">Email_Address</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             id="signup-email"
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder="user@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="h-11 pl-10"
+                            className="h-11 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                        <Label htmlFor="signup-password" className="text-xs font-mono text-primary uppercase">Password</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
                           <Input
                             id="signup-password"
                             type="password"
@@ -345,12 +348,12 @@ const Auth = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             minLength={6}
-                            className="h-11 pl-10"
+                            className="h-11 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow"
                           />
                         </div>
                       </div>
-                      <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                        {isLoading ? "Creating account..." : "Create Account"}
+                      <Button type="submit" className="w-full h-11 font-mono bg-primary hover:bg-primary/90 hover:shadow-glow" disabled={isLoading}>
+                        {isLoading ? "Creating..." : "register --new-user"}
                       </Button>
                     </form>
                   </TabsContent>
@@ -360,9 +363,9 @@ const Auth = () => {
           </Card>
 
           {/* Security badge */}
-          <div className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4" />
-            <span>256-bit SSL encrypted</span>
+          <div className="flex items-center justify-center gap-2 mt-6 text-xs text-muted-foreground font-mono">
+            <Shield className="h-4 w-4 text-primary" />
+            <span>// 256-bit SSL encrypted</span>
           </div>
         </div>
       </div>
