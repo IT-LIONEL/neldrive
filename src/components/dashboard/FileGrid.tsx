@@ -52,6 +52,7 @@ interface Folder {
   shareable_token?: string;
   share_expires_at?: string | null;
   share_password_hash?: string | null;
+  auto_lock_minutes?: number | null;
 }
 
 interface FileGridProps {
@@ -61,6 +62,12 @@ interface FileGridProps {
   onFolderClick: (folderId: string) => void;
   onFileDeleted: () => void;
   onFolderDeleted: () => void;
+  onFolderUnlocked?: (folderId: string, autoLockMinutes: number | null) => void;
+  isFolderUnlocked?: (folderId: string) => boolean;
+  currentFolderLocked?: boolean;
+  currentFolderPasswordHash?: string | null;
+  currentFolderName?: string;
+  currentFolderAutoLock?: number | null;
 }
 
 const FileGrid = ({
@@ -70,6 +77,12 @@ const FileGrid = ({
   onFolderClick,
   onFileDeleted,
   onFolderDeleted,
+  onFolderUnlocked,
+  isFolderUnlocked,
+  currentFolderLocked,
+  currentFolderPasswordHash,
+  currentFolderName,
+  currentFolderAutoLock,
 }: FileGridProps) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [renameItem, setRenameItem] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
@@ -77,10 +90,46 @@ const FileGrid = ({
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "type">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean } | null>(null);
-  const [unlockFolder, setUnlockFolder] = useState<{ id: string; name: string; passwordHash: string } | null>(null);
+  const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean; autoLockMinutes?: number | null } | null>(null);
+  const [unlockFolder, setUnlockFolder] = useState<{ id: string; name: string; passwordHash: string; autoLockMinutes?: number | null } | null>(null);
   const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
   const [shareFolder, setShareFolder] = useState<{ id: string; name: string; isShareable: boolean; shareableToken: string } | null>(null);
+  const [fileUnlockDialog, setFileUnlockDialog] = useState<{ file: File; action: 'preview' | 'download' } | null>(null);
+
+  // Check if file action requires unlock
+  const requiresUnlock = (file: File) => {
+    if (!currentFolderLocked) return false;
+    return true;
+  };
+
+  const handleFileAction = (file: File, action: 'preview' | 'download') => {
+    if (requiresUnlock(file)) {
+      setFileUnlockDialog({ file, action });
+    } else {
+      if (action === 'preview') {
+        setPreviewFile(file);
+      } else {
+        handleDownload(file);
+      }
+    }
+  };
+
+  const handleFileUnlockSuccess = () => {
+    if (fileUnlockDialog) {
+      // Notify parent about folder unlock
+      if (onFolderUnlocked && fileUnlockDialog.file.folder_id) {
+        onFolderUnlocked(fileUnlockDialog.file.folder_id, currentFolderAutoLock || null);
+      }
+      
+      // Perform the action
+      if (fileUnlockDialog.action === 'preview') {
+        setPreviewFile(fileUnlockDialog.file);
+      } else {
+        handleDownload(fileUnlockDialog.file);
+      }
+      setFileUnlockDialog(null);
+    }
+  };
 
   const logAudit = async (fileId: string, action: string) => {
     try {
@@ -401,12 +450,14 @@ const FileGrid = ({
                   : "hover:shadow-primary/5 hover:border-primary/30"
               }`}
               onClick={() => {
-                if (item.is_locked && item.password_hash) {
+                // Check if folder is locked AND not already unlocked in this session
+                if (item.is_locked && item.password_hash && (!isFolderUnlocked || !isFolderUnlocked(item.id))) {
                   setPendingFolderId(item.id);
                   setUnlockFolder({ 
                     id: item.id, 
                     name: item.name, 
-                    passwordHash: item.password_hash 
+                    passwordHash: item.password_hash,
+                    autoLockMinutes: item.auto_lock_minutes
                   });
                 } else {
                   onFolderClick(item.id);
@@ -465,7 +516,8 @@ const FileGrid = ({
                         setLockFolder({ 
                           id: item.id, 
                           name: item.name, 
-                          isLocked: item.is_locked || false 
+                          isLocked: item.is_locked || false,
+                          autoLockMinutes: item.auto_lock_minutes
                         });
                       }}
                       className="cursor-pointer"
@@ -524,11 +576,20 @@ const FileGrid = ({
           ) : (
             <Card
               key={item.id}
-              className="p-4 hover:shadow-lg hover:shadow-accent/5 hover:border-accent/30 transition-all group relative rounded-xl border-border/50 bg-card/80 backdrop-blur-sm"
-              draggable
-              onDragStart={() => handleDragStart(item.id)}
+              className={`p-4 hover:shadow-lg transition-all group relative rounded-xl border-border/50 bg-card/80 backdrop-blur-sm ${
+                currentFolderLocked 
+                  ? "hover:shadow-destructive/5 hover:border-destructive/30 border-destructive/20" 
+                  : "hover:shadow-accent/5 hover:border-accent/30"
+              }`}
+              draggable={!currentFolderLocked}
+              onDragStart={() => !currentFolderLocked && handleDragStart(item.id)}
             >
-              {item.is_offline && (
+              {currentFolderLocked && (
+                <div className="absolute top-3 right-3 p-1.5 bg-destructive/20 rounded-full">
+                  <Lock className="h-3 w-3 text-destructive" />
+                </div>
+              )}
+              {item.is_offline && !currentFolderLocked && (
                 <div className="absolute top-3 right-3 p-1.5 bg-primary/10 rounded-full">
                   <WifiOff className="h-3 w-3 text-primary" />
                 </div>
@@ -548,13 +609,13 @@ const FileGrid = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border/50">
-                    <DropdownMenuItem onClick={() => setPreviewFile(item)} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => handleFileAction(item, 'preview')} className="cursor-pointer">
                       <Eye className="mr-2 h-4 w-4" />
-                      Preview
+                      Preview {currentFolderLocked && <Lock className="ml-auto h-3 w-3 text-destructive" />}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDownload(item)} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => handleFileAction(item, 'download')} className="cursor-pointer">
                       <Download className="mr-2 h-4 w-4" />
-                      Download
+                      Download {currentFolderLocked && <Lock className="ml-auto h-3 w-3 text-destructive" />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setRenameItem({ id: item.id, name: item.name, type: "file" })}
@@ -665,6 +726,7 @@ const FileGrid = ({
           folderId={lockFolder.id}
           folderName={lockFolder.name}
           isLocked={lockFolder.isLocked}
+          autoLockMinutes={lockFolder.autoLockMinutes}
           onSuccess={() => {
             setLockFolder(null);
             onFolderDeleted();
@@ -684,6 +746,10 @@ const FileGrid = ({
           folderName={unlockFolder.name}
           passwordHash={unlockFolder.passwordHash}
           onSuccess={() => {
+            // Notify parent that folder was unlocked
+            if (onFolderUnlocked && pendingFolderId) {
+              onFolderUnlocked(pendingFolderId, unlockFolder.autoLockMinutes || null);
+            }
             setUnlockFolder(null);
             if (pendingFolderId) {
               onFolderClick(pendingFolderId);
@@ -705,6 +771,17 @@ const FileGrid = ({
             setShareFolder(null);
             onFolderDeleted();
           }}
+        />
+      )}
+
+      {/* File unlock dialog - for files in locked folders */}
+      {fileUnlockDialog && currentFolderPasswordHash && (
+        <UnlockFolderDialog
+          open={!!fileUnlockDialog}
+          onOpenChange={(open) => !open && setFileUnlockDialog(null)}
+          folderName={currentFolderName || 'Locked Folder'}
+          passwordHash={currentFolderPasswordHash}
+          onSuccess={handleFileUnlockSuccess}
         />
       )}
     </>

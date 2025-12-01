@@ -25,6 +25,8 @@ interface SidebarProps {
   currentFolderId: string | null;
   onFolderSelect: (folderId: string | null) => void;
   onFolderCreated: () => void;
+  onFolderUnlocked?: (folderId: string, autoLockMinutes: number | null) => void;
+  isFolderUnlocked?: (folderId: string) => boolean;
 }
 
 interface FolderToUnlock {
@@ -33,7 +35,7 @@ interface FolderToUnlock {
   password_hash: string;
 }
 
-const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: SidebarProps) => {
+const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated, onFolderUnlocked, isFolderUnlocked }: SidebarProps) => {
   const navigate = useNavigate();
   const { folders } = useFolders(null, "");
   const { usedBytes, totalBytes, percentage, isLoading: storageLoading } = useStorage();
@@ -69,21 +71,26 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
   };
 
   const handleFolderClick = (folder: any) => {
-    // If folder is locked, show unlock dialog
-    if (folder.is_locked && folder.password_hash) {
+    // If folder is locked and not yet unlocked in this session, show unlock dialog
+    if (folder.is_locked && folder.password_hash && (!isFolderUnlocked || !isFolderUnlocked(folder.id))) {
       setFolderToUnlock({
         id: folder.id,
         name: folder.name,
         password_hash: folder.password_hash,
       });
     } else {
-      // Folder is not locked, navigate directly
+      // Folder is not locked or already unlocked, navigate directly
       onFolderSelect(folder.id);
     }
   };
 
   const handleUnlockSuccess = () => {
     if (folderToUnlock) {
+      // Notify parent about unlock (with auto-lock setting if available)
+      const folder = folders.find((f: any) => f.id === folderToUnlock.id) as any;
+      if (onFolderUnlocked) {
+        onFolderUnlocked(folderToUnlock.id, folder?.auto_lock_minutes || null);
+      }
       onFolderSelect(folderToUnlock.id);
       setFolderToUnlock(null);
     }

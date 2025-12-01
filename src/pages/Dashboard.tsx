@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -16,6 +16,13 @@ import { useFolders } from "@/hooks/useFolders";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useStorage } from "@/hooks/useStorage";
 
+// Track unlocked folders with their unlock timestamps
+interface UnlockedFolder {
+  id: string;
+  unlockedAt: number;
+  autoLockMinutes: number | null;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -23,12 +30,35 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [unlockedFolders, setUnlockedFolders] = useState<UnlockedFolder[]>([]);
 
   const { files, isLoading: filesLoading, refetch: refetchFiles } = useFiles(currentFolderId, searchQuery);
   const { folders, isLoading: foldersLoading, refetch: refetchFolders } = useFolders(currentFolderId, searchQuery);
   const { refetch: refetchStorage } = useStorage();
   
   useOfflineSync();
+
+  // Check and auto-lock folders every 30 seconds
+  useEffect(() => {
+    const checkAutoLock = () => {
+      const now = Date.now();
+      setUnlockedFolders(prev => {
+        const stillUnlocked = prev.filter(folder => {
+          if (!folder.autoLockMinutes) return true;
+          const elapsedMinutes = (now - folder.unlockedAt) / 1000 / 60;
+          if (elapsedMinutes >= folder.autoLockMinutes) {
+            toast.info(`Folder auto-locked after ${folder.autoLockMinutes} minutes`);
+            return false;
+          }
+          return true;
+        });
+        return stillUnlocked;
+      });
+    };
+
+    const interval = setInterval(checkAutoLock, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,6 +79,18 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleUnlockFolder = useCallback((folderId: string, autoLockMinutes: number | null) => {
+    setUnlockedFolders(prev => {
+      // Remove existing entry if present
+      const filtered = prev.filter(f => f.id !== folderId);
+      return [...filtered, { id: folderId, unlockedAt: Date.now(), autoLockMinutes }];
+    });
+  }, []);
+
+  const isFolderUnlocked = useCallback((folderId: string) => {
+    return unlockedFolders.some(f => f.id === folderId);
+  }, [unlockedFolders]);
 
   const handleSignOut = async () => {
     try {
@@ -96,6 +138,9 @@ const Dashboard = () => {
     }
   };
 
+  // Get the current folder info to check if it's locked
+  const currentFolder = folders.find(f => f.id === currentFolderId) || null;
+
   if (!user) {
     return null;
   }
@@ -123,6 +168,8 @@ const Dashboard = () => {
           currentFolderId={currentFolderId}
           onFolderSelect={setCurrentFolderId}
           onFolderCreated={handleFolderCreated}
+          onFolderUnlocked={handleUnlockFolder}
+          isFolderUnlocked={isFolderUnlocked}
         />
         
         <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
@@ -179,6 +226,12 @@ const Dashboard = () => {
               onFolderClick={setCurrentFolderId}
               onFileDeleted={handleFileDeleted}
               onFolderDeleted={refetchFolders}
+              onFolderUnlocked={handleUnlockFolder}
+              isFolderUnlocked={isFolderUnlocked}
+              currentFolderLocked={currentFolder?.is_locked && currentFolder?.password_hash && !isFolderUnlocked(currentFolderId || '')}
+              currentFolderPasswordHash={currentFolder?.password_hash || null}
+              currentFolderName={currentFolder?.name || ''}
+              currentFolderAutoLock={(currentFolder as any)?.auto_lock_minutes || null}
             />
           </div>
         </main>

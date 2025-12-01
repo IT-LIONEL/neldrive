@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Lock, Unlock, Eye, EyeOff, Shield } from "lucide-react";
+import { Lock, Unlock, Eye, EyeOff, Shield, Timer, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ interface LockFolderDialogProps {
   folderName: string;
   isLocked: boolean;
   onSuccess: () => void;
+  autoLockMinutes?: number | null;
 }
 
 // Simple hash function for password (in production, use bcrypt on server)
@@ -39,11 +41,24 @@ export const LockFolderDialog = ({
   folderName,
   isLocked,
   onSuccess,
+  autoLockMinutes: initialAutoLock,
 }: LockFolderDialogProps) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [autoQuarantine, setAutoQuarantine] = useState(false);
+  const [autoLockMinutes, setAutoLockMinutes] = useState(5);
+
+  useEffect(() => {
+    if (initialAutoLock) {
+      setAutoQuarantine(true);
+      setAutoLockMinutes(initialAutoLock);
+    } else {
+      setAutoQuarantine(false);
+      setAutoLockMinutes(5);
+    }
+  }, [initialAutoLock, open]);
 
   const handleLock = async () => {
     if (!password) {
@@ -69,13 +84,16 @@ export const LockFolderDialog = ({
         .from("folders")
         .update({ 
           is_locked: true, 
-          password_hash: passwordHash 
-        })
+          password_hash: passwordHash,
+          auto_lock_minutes: autoQuarantine ? autoLockMinutes : null
+        } as any)
         .eq("id", folderId);
 
       if (error) throw error;
 
-      toast.success("Folder locked successfully!");
+      toast.success(autoQuarantine 
+        ? `Folder locked with ${autoLockMinutes}-min auto-quarantine!` 
+        : "Folder locked successfully!");
       setPassword("");
       setConfirmPassword("");
       onOpenChange(false);
@@ -94,8 +112,9 @@ export const LockFolderDialog = ({
         .from("folders")
         .update({ 
           is_locked: false, 
-          password_hash: null 
-        })
+          password_hash: null,
+          auto_lock_minutes: null
+        } as any)
         .eq("id", folderId);
 
       if (error) throw error;
@@ -105,6 +124,30 @@ export const LockFolderDialog = ({
       onSuccess();
     } catch (error: any) {
       toast.error(error.message || "Failed to unlock folder");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateAutoLock = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("folders")
+        .update({ 
+          auto_lock_minutes: autoQuarantine ? autoLockMinutes : null
+        } as any)
+        .eq("id", folderId);
+
+      if (error) throw error;
+
+      toast.success(autoQuarantine 
+        ? `Auto-quarantine set to ${autoLockMinutes} minutes` 
+        : "Auto-quarantine disabled");
+      onOpenChange(false);
+      onSuccess();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update settings");
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +163,7 @@ export const LockFolderDialog = ({
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
             {isLocked 
-              ? "// Remove password protection from this folder"
+              ? "// Remove password protection or update auto-quarantine"
               : "// Set a password to protect this folder"
             }
           </DialogDescription>
@@ -167,15 +210,101 @@ export const LockFolderDialog = ({
                 />
               </div>
             </div>
+
+            {/* Auto-Quarantine Section */}
+            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-destructive" />
+                  <Label htmlFor="auto-quarantine" className="text-sm font-semibold text-destructive">
+                    Auto-Quarantine
+                  </Label>
+                </div>
+                <Switch
+                  id="auto-quarantine"
+                  checked={autoQuarantine}
+                  onCheckedChange={setAutoQuarantine}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                // Automatically re-lock folder after inactivity
+              </p>
+              
+              {autoQuarantine && (
+                <div className="flex items-center gap-3 mt-2">
+                  <Timer className="h-4 w-4 text-destructive" />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={autoLockMinutes}
+                      onChange={(e) => setAutoLockMinutes(parseInt(e.target.value) || 5)}
+                      className="w-20 h-9 font-mono bg-muted/50 border-destructive/30 focus:border-destructive"
+                    />
+                    <span className="text-xs text-muted-foreground">minutes</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <p className="text-xs text-muted-foreground">
               // Warning: If you forget the password, you'll need to remove the lock from settings
             </p>
           </div>
         ) : (
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
               // This will remove password protection. Anyone with access to your account can view the folder.
             </p>
+
+            {/* Update Auto-Quarantine Section for locked folders */}
+            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-destructive" />
+                  <Label htmlFor="auto-quarantine-update" className="text-sm font-semibold text-destructive">
+                    Auto-Quarantine
+                  </Label>
+                </div>
+                <Switch
+                  id="auto-quarantine-update"
+                  checked={autoQuarantine}
+                  onCheckedChange={setAutoQuarantine}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                // {autoQuarantine ? `Re-locks after ${autoLockMinutes} min of inactivity` : "Stays unlocked until manual lock"}
+              </p>
+              
+              {autoQuarantine && (
+                <div className="flex items-center gap-3 mt-2">
+                  <Timer className="h-4 w-4 text-destructive" />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={autoLockMinutes}
+                      onChange={(e) => setAutoLockMinutes(parseInt(e.target.value) || 5)}
+                      className="w-20 h-9 font-mono bg-muted/50 border-destructive/30 focus:border-destructive"
+                    />
+                    <span className="text-xs text-muted-foreground">minutes</span>
+                  </div>
+                </div>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUpdateAutoLock}
+                disabled={isLoading}
+                className="w-full mt-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Timer className="mr-2 h-4 w-4" />
+                {isLoading ? "Updating..." : "update --auto-lock"}
+              </Button>
+            </div>
           </div>
         )}
 
