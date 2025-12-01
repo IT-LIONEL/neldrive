@@ -113,9 +113,13 @@ export type Database = {
           created_at: string | null
           id: string
           is_locked: boolean | null
+          is_shareable: boolean | null
           name: string
           parent_id: string | null
           password_hash: string | null
+          share_expires_at: string | null
+          share_password_hash: string | null
+          shareable_token: string | null
           updated_at: string | null
           user_id: string
         }
@@ -123,9 +127,13 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_locked?: boolean | null
+          is_shareable?: boolean | null
           name: string
           parent_id?: string | null
           password_hash?: string | null
+          share_expires_at?: string | null
+          share_password_hash?: string | null
+          shareable_token?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -133,9 +141,13 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_locked?: boolean | null
+          is_shareable?: boolean | null
           name?: string
           parent_id?: string | null
           password_hash?: string | null
+          share_expires_at?: string | null
+          share_password_hash?: string | null
+          shareable_token?: string | null
           updated_at?: string | null
           user_id?: string
         }

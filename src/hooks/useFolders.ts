@@ -7,7 +7,7 @@ export const useFolders = (parentId: string | null, searchQuery: string) => {
     queryFn: async () => {
       let queryBuilder = supabase
         .from("folders")
-        .select("id, name, created_at, parent_id, is_locked, password_hash")
+        .select("id, name, created_at, parent_id, is_locked, password_hash, is_shareable, shareable_token, share_expires_at, share_password_hash")
         .order("created_at", { ascending: false });
 
       // If searching, search across ALL folders (global search)

@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import Install from "./pages/Install";
 import SharedFile from "./pages/SharedFile";
+import SharedFolder from "./pages/SharedFolder";
 import OfflineFiles from "./pages/OfflineFiles";
 import AppDownload from "./pages/AppDownload";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/offline-files" element={<OfflineFiles />} />
           <Route path="/appdownload" element={<AppDownload />} />
           <Route path="/share/:token" element={<SharedFile />} />
+          <Route path="/shared-folder/:token" element={<SharedFolder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
