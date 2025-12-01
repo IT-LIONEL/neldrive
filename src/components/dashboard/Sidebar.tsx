@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, Folder, Plus, WifiOff, ChevronRight, HardDrive } from "lucide-react";
+import { Home, Folder, Plus, WifiOff, ChevronRight, HardDrive, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFolders } from "@/hooks/useFolders";
+import { useStorage, formatStorageSize } from "@/hooks/useStorage";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: SidebarProps) => {
   const navigate = useNavigate();
   const { folders } = useFolders(null, "");
+  const { usedBytes, totalBytes, percentage, isLoading: storageLoading } = useStorage();
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -60,36 +62,42 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
 
   if (!isOpen) return null;
 
+  const getStorageColor = () => {
+    if (percentage > 90) return "from-destructive to-destructive/70";
+    if (percentage > 70) return "from-amber-500 to-amber-400";
+    return "from-primary to-accent";
+  };
+
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-card/50 backdrop-blur-sm border-r border-border/50">
+    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-card/50 backdrop-blur-sm border-r border-border/50 scanline">
       <ScrollArea className="h-full">
         <div className="p-4 space-y-6">
           {/* Main Navigation */}
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
-              Navigation
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider px-3 mb-3 text-glow">
+              // Navigation
             </p>
             <Button
               variant={currentFolderId === null ? "default" : "ghost"}
-              className={`w-full justify-start h-11 ${
+              className={`w-full justify-start h-11 font-mono ${
                 currentFolderId === null 
-                  ? "bg-primary text-primary-foreground shadow-md" 
-                  : "hover:bg-primary/10"
+                  ? "bg-primary text-primary-foreground shadow-glow" 
+                  : "hover:bg-primary/10 hover:text-primary"
               }`}
               onClick={() => onFolderSelect(null)}
             >
               <HardDrive className="mr-3 h-4 w-4" />
-              My Drive
+              My_Drive
               {currentFolderId === null && <ChevronRight className="ml-auto h-4 w-4" />}
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start h-11 hover:bg-accent/20"
+              className="w-full justify-start h-11 font-mono hover:bg-accent/10 hover:text-accent"
               onClick={() => navigate("/offline-files")}
             >
               <WifiOff className="mr-3 h-4 w-4" />
-              Offline Files
+              Offline_Files
             </Button>
           </div>
 
@@ -98,28 +106,30 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  className="w-full justify-start h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+                  className="w-full justify-start h-11 font-mono bg-gradient-to-r from-primary to-accent hover:shadow-glow transition-all"
                 >
                   <Plus className="mr-3 h-4 w-4" />
-                  New Folder
+                  + New_Folder
                 </Button>
               </DialogTrigger>
-              <DialogContent className="border-border/50 bg-card/95 backdrop-blur-xl">
+              <DialogContent className="border-primary/30 bg-card/95 backdrop-blur-xl border-glow">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Folder className="h-5 w-5 text-primary" />
-                    Create New Folder
+                  <DialogTitle className="flex items-center gap-2 font-mono text-primary">
+                    <Folder className="h-5 w-5" />
+                    mkdir /new_folder
                   </DialogTitle>
-                  <DialogDescription>
-                    Enter a name for your new folder.
+                  <DialogDescription className="font-mono text-muted-foreground">
+                    Enter folder name:
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="folder-name">Folder Name</Label>
+                    <Label htmlFor="folder-name" className="font-mono text-xs text-primary">
+                      FOLDER_NAME
+                    </Label>
                     <Input
                       id="folder-name"
-                      placeholder="My Folder"
+                      placeholder="my_folder"
                       value={newFolderName}
                       onChange={(e) => setNewFolderName(e.target.value)}
                       onKeyDown={(e) => {
@@ -127,7 +137,7 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
                           handleCreateFolder();
                         }
                       }}
-                      className="h-11"
+                      className="h-11 font-mono bg-background/50 border-primary/30 focus:border-primary focus:shadow-glow"
                     />
                   </div>
                 </div>
@@ -135,9 +145,9 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
                   <Button
                     onClick={handleCreateFolder}
                     disabled={isCreating || !newFolderName.trim()}
-                    className="bg-primary hover:bg-primary/90"
+                    className="font-mono bg-primary hover:bg-primary/90 hover:shadow-glow"
                   >
-                    {isCreating ? "Creating..." : "Create Folder"}
+                    {isCreating ? "Creating..." : "Execute"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -147,17 +157,17 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
           {/* Folders List */}
           {folders && folders.length > 0 && (
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
-                Folders
+              <p className="text-xs font-semibold text-primary uppercase tracking-wider px-3 mb-3 text-glow">
+                // Folders
               </p>
               {folders.map((folder) => (
                 <Button
                   key={folder.id}
                   variant={currentFolderId === folder.id ? "secondary" : "ghost"}
-                  className={`w-full justify-start h-10 ${
+                  className={`w-full justify-start h-10 font-mono ${
                     currentFolderId === folder.id 
-                      ? "bg-secondary text-secondary-foreground" 
-                      : "hover:bg-muted/50"
+                      ? "bg-secondary text-secondary-foreground border border-primary/30" 
+                      : "hover:bg-muted/50 hover:text-primary"
                   }`}
                   onClick={() => onFolderSelect(folder.id)}
                 >
@@ -169,13 +179,29 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
           )}
 
           {/* Storage Info */}
-          <div className="mt-auto pt-4 border-t border-border/50">
-            <div className="px-3 py-2">
-              <p className="text-xs text-muted-foreground">Storage</p>
-              <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className="h-full w-1/4 bg-gradient-to-r from-primary to-accent rounded-full" />
+          <div className="mt-auto pt-4 border-t border-primary/20">
+            <div className="px-3 py-3 bg-muted/30 rounded-lg border border-primary/10">
+              <div className="flex items-center gap-2 mb-2">
+                <Database className="h-4 w-4 text-primary" />
+                <p className="text-xs font-mono text-primary uppercase">Storage_Usage</p>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">2.5 GB of 10 GB used</p>
+              <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden border border-border/50">
+                <div 
+                  className={`h-full bg-gradient-to-r ${getStorageColor()} rounded-full transition-all duration-500`}
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <div className="flex justify-between mt-2">
+                <p className="text-xs font-mono text-muted-foreground">
+                  {storageLoading ? "Loading..." : formatStorageSize(usedBytes)}
+                </p>
+                <p className="text-xs font-mono text-muted-foreground">
+                  {formatStorageSize(totalBytes)}
+                </p>
+              </div>
+              <p className="text-xs font-mono text-primary/70 mt-1">
+                {percentage.toFixed(1)}% used
+              </p>
             </div>
           </div>
         </div>

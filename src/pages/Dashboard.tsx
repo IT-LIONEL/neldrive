@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Mail, Sparkles } from "lucide-react";
+import { AlertCircle, Mail, Terminal } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
 import FileGrid from "@/components/dashboard/FileGrid";
@@ -14,6 +14,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useStorage } from "@/hooks/useStorage";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Dashboard = () => {
 
   const { files, isLoading: filesLoading, refetch: refetchFiles } = useFiles(currentFolderId, searchQuery);
   const { folders, isLoading: foldersLoading, refetch: refetchFolders } = useFolders(currentFolderId, searchQuery);
+  const { refetch: refetchStorage } = useStorage();
   
   useOfflineSync();
 
@@ -60,12 +62,18 @@ const Dashboard = () => {
 
   const handleUploadSuccess = () => {
     refetchFiles();
+    refetchStorage();
     toast.success("File uploaded successfully!");
   };
 
   const handleFolderCreated = () => {
     refetchFolders();
     toast.success("Folder created successfully!");
+  };
+
+  const handleFileDeleted = () => {
+    refetchFiles();
+    refetchStorage();
   };
 
   const handleResendVerification = async () => {
@@ -93,12 +101,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background scanline">
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
-        <div className="absolute -bottom-40 right-1/3 w-72 h-72 rounded-full bg-secondary/20 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl animate-pulse-glow" />
+        <div className="absolute top-1/2 -left-40 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute -bottom-40 right-1/3 w-72 h-72 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
       <DashboardHeader
@@ -122,22 +130,22 @@ const Dashboard = () => {
             <InstallPrompt />
             
             {user && !user.email_confirmed_at && (
-              <Alert className="mb-6 border-amber-500/50 bg-amber-500/10">
+              <Alert className="mb-6 border-amber-500/30 bg-amber-500/10 font-mono">
                 <AlertCircle className="h-4 w-4 text-amber-500" />
-                <AlertTitle className="text-amber-600 dark:text-amber-400">Email Verification Required</AlertTitle>
+                <AlertTitle className="text-amber-500">! Warning: Email not verified</AlertTitle>
                 <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <span className="text-amber-600/80 dark:text-amber-400/80">
-                    Please verify your email address to access all features.
+                  <span className="text-amber-500/80">
+                    Verify email to unlock all features.
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleResendVerification}
                     disabled={isResendingEmail}
-                    className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10 shrink-0"
+                    className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10 shrink-0 font-mono"
                   >
                     <Mail className="mr-2 h-4 w-4" />
-                    {isResendingEmail ? "Sending..." : "Resend Email"}
+                    {isResendingEmail ? "Sending..." : "resend --email"}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -146,15 +154,15 @@ const Dashboard = () => {
             {/* Welcome Section */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">
-                  {currentFolderId ? "Folder Contents" : "My Drive"}
+                <Terminal className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold font-mono text-primary text-glow">
+                  {currentFolderId ? "$ ls ./folder" : "$ ls ~/drive"}
                 </h2>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-mono">
                 {currentFolderId 
-                  ? "Browse files in this folder" 
-                  : "Your secure cloud storage - upload, organize, and share files"
+                  ? "// browsing folder contents" 
+                  : "// secure cloud storage • upload • organize • share"
                 }
               </p>
             </div>
@@ -169,7 +177,7 @@ const Dashboard = () => {
               folders={folders}
               isLoading={filesLoading || foldersLoading}
               onFolderClick={setCurrentFolderId}
-              onFileDeleted={refetchFiles}
+              onFileDeleted={handleFileDeleted}
               onFolderDeleted={refetchFolders}
             />
           </div>
