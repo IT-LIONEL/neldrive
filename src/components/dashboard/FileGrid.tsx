@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, WifiOff, Wifi } from "lucide-react";
+import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, WifiOff, Wifi, Lock, Unlock, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,8 @@ import { format } from "date-fns";
 import FilePreviewDialog from "./FilePreviewDialog";
 import { RenameDialog } from "./RenameDialog";
 import { MoveDialog } from "./MoveDialog";
+import { LockFolderDialog } from "./LockFolderDialog";
+import { UnlockFolderDialog } from "./UnlockFolderDialog";
 import { saveFileOffline, removeOfflineFile, getOfflineFile } from "@/lib/offlineStorage";
 
 interface File {
@@ -43,6 +45,8 @@ interface Folder {
   id: string;
   name: string;
   created_at: string;
+  is_locked?: boolean;
+  password_hash?: string | null;
 }
 
 interface FileGridProps {
@@ -68,6 +72,9 @@ const FileGrid = ({
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "type">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean } | null>(null);
+  const [unlockFolder, setUnlockFolder] = useState<{ id: string; name: string; passwordHash: string } | null>(null);
+  const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
 
   const logAudit = async (fileId: string, action: string) => {
     try {
@@ -382,17 +389,47 @@ const FileGrid = ({
           item.type === "folder" ? (
             <Card
               key={item.id}
-              className="p-4 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30 transition-all cursor-pointer group rounded-xl border-border/50 bg-card/80 backdrop-blur-sm"
-              onClick={() => onFolderClick(item.id)}
+              className={`p-4 hover:shadow-lg transition-all cursor-pointer group rounded-xl border-border/50 bg-card/80 backdrop-blur-sm relative ${
+                item.is_locked 
+                  ? "hover:shadow-destructive/10 hover:border-destructive/30 border-destructive/20" 
+                  : "hover:shadow-primary/5 hover:border-primary/30"
+              }`}
+              onClick={() => {
+                if (item.is_locked && item.password_hash) {
+                  setPendingFolderId(item.id);
+                  setUnlockFolder({ 
+                    id: item.id, 
+                    name: item.name, 
+                    passwordHash: item.password_hash 
+                  });
+                } else {
+                  onFolderClick(item.id);
+                }
+              }}
               onDragOver={handleDragOver}
               onDrop={(e) => {
                 e.stopPropagation();
-                handleDropOnFolder(item.id);
+                if (!item.is_locked) {
+                  handleDropOnFolder(item.id);
+                }
               }}
             >
+              {item.is_locked && (
+                <div className="absolute top-3 right-3 p-1.5 bg-destructive/20 rounded-full">
+                  <Lock className="h-3 w-3 text-destructive" />
+                </div>
+              )}
               <div className="flex items-start justify-between mb-3">
-                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl">
-                  <Folder className="h-6 w-6 text-primary" />
+                <div className={`p-3 rounded-xl ${
+                  item.is_locked 
+                    ? "bg-gradient-to-br from-destructive/20 to-destructive/5" 
+                    : "bg-gradient-to-br from-primary/20 to-primary/5"
+                }`}>
+                  {item.is_locked ? (
+                    <ShieldAlert className="h-6 w-6 text-destructive" />
+                  ) : (
+                    <Folder className="h-6 w-6 text-primary" />
+                  )}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -413,8 +450,33 @@ const FileGrid = ({
                       className="cursor-pointer"
                     >
                       <Edit className="mr-2 h-4 w-4" />
-                      Rename
+                      rename
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border/50" />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLockFolder({ 
+                          id: item.id, 
+                          name: item.name, 
+                          isLocked: item.is_locked || false 
+                        });
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {item.is_locked ? (
+                        <>
+                          <Unlock className="mr-2 h-4 w-4" />
+                          remove --lock
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="mr-2 h-4 w-4" />
+                          set --password
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border/50" />
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
@@ -423,12 +485,15 @@ const FileGrid = ({
                       className="text-destructive cursor-pointer focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <h3 className="font-medium truncate mb-1">{item.name}</h3>
+              <h3 className="font-medium truncate mb-1 flex items-center gap-2">
+                {item.name}
+                {item.is_locked && <Lock className="h-3 w-3 text-destructive" />}
+              </h3>
               <p className="text-xs text-muted-foreground">
                 {format(new Date(item.created_at), "MMM d, yyyy")}
               </p>
@@ -565,6 +630,41 @@ const FileGrid = ({
               onFileDeleted();
             } else {
               onFolderDeleted();
+            }
+          }}
+        />
+      )}
+
+      {lockFolder && (
+        <LockFolderDialog
+          open={!!lockFolder}
+          onOpenChange={(open) => !open && setLockFolder(null)}
+          folderId={lockFolder.id}
+          folderName={lockFolder.name}
+          isLocked={lockFolder.isLocked}
+          onSuccess={() => {
+            setLockFolder(null);
+            onFolderDeleted();
+          }}
+        />
+      )}
+
+      {unlockFolder && (
+        <UnlockFolderDialog
+          open={!!unlockFolder}
+          onOpenChange={(open) => {
+            if (!open) {
+              setUnlockFolder(null);
+              setPendingFolderId(null);
+            }
+          }}
+          folderName={unlockFolder.name}
+          passwordHash={unlockFolder.passwordHash}
+          onSuccess={() => {
+            setUnlockFolder(null);
+            if (pendingFolderId) {
+              onFolderClick(pendingFolderId);
+              setPendingFolderId(null);
             }
           }}
         />
