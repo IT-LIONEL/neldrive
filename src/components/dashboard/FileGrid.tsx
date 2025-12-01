@@ -303,7 +303,7 @@ const FileGrid = ({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {[...Array(8)].map((_, i) => (
-          <Card key={i} className="p-4 h-48 animate-pulse bg-muted" />
+          <Card key={i} className="p-4 h-40 animate-pulse bg-muted/50 border-border/30 rounded-xl" />
         ))}
       </div>
     );
@@ -335,11 +335,13 @@ const FileGrid = ({
 
   if (allItems.length === 0) {
     return (
-      <div className="text-center py-12">
-        <FileIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-        <p className="text-lg text-muted-foreground">No files or folders yet</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Upload files or create folders to get started
+      <div className="text-center py-16 px-4">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-4">
+          <FileIcon className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <p className="text-lg font-medium text-foreground">No files or folders yet</p>
+        <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+          Upload files or create folders to get started with your cloud storage
         </p>
       </div>
     );
@@ -347,16 +349,18 @@ const FileGrid = ({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">
-          {allItems.length} {allItems.length === 1 ? 'item' : 'items'}
-        </h2>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {allItems.length} {allItems.length === 1 ? 'item' : 'items'}
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[130px] h-9 bg-muted/50 border-border/50">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card/95 backdrop-blur-xl border-border/50">
               <SelectItem value="name">Name</SelectItem>
               <SelectItem value="date">Date</SelectItem>
               <SelectItem value="size">Size</SelectItem>
@@ -366,6 +370,7 @@ const FileGrid = ({
           <Button
             variant="outline"
             size="icon"
+            className="h-9 w-9 bg-muted/50 border-border/50 hover:bg-primary/10"
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           >
             <ArrowUpDown className="h-4 w-4" />
@@ -377,7 +382,7 @@ const FileGrid = ({
           item.type === "folder" ? (
             <Card
               key={item.id}
-              className="p-4 hover:shadow-md transition-all cursor-pointer group"
+              className="p-4 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30 transition-all cursor-pointer group rounded-xl border-border/50 bg-card/80 backdrop-blur-sm"
               onClick={() => onFolderClick(item.id)}
               onDragOver={handleDragOver}
               onDrop={(e) => {
@@ -386,7 +391,7 @@ const FileGrid = ({
               }}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="p-3 bg-primary/10 rounded-lg">
+                <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl">
                   <Folder className="h-6 w-6 text-primary" />
                 </div>
                 <DropdownMenu>
@@ -394,17 +399,18 @@ const FileGrid = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="opacity-0 group-hover:opacity-100"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-muted/50"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border/50">
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
                         setRenameItem({ id: item.id, name: item.name, type: "folder" });
                       }}
+                      className="cursor-pointer"
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Rename
@@ -414,7 +420,7 @@ const FileGrid = ({
                         e.stopPropagation();
                         handleDeleteFolder(item.id);
                       }}
-                      className="text-destructive"
+                      className="text-destructive cursor-pointer focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -430,60 +436,62 @@ const FileGrid = ({
           ) : (
             <Card
               key={item.id}
-              className="p-4 hover:shadow-md transition-all group relative"
+              className="p-4 hover:shadow-lg hover:shadow-accent/5 hover:border-accent/30 transition-all group relative rounded-xl border-border/50 bg-card/80 backdrop-blur-sm"
               draggable
               onDragStart={() => handleDragStart(item.id)}
             >
               {item.is_offline && (
-                <div className="absolute top-2 right-2 p-1 bg-primary/10 rounded-full">
+                <div className="absolute top-3 right-3 p-1.5 bg-primary/10 rounded-full">
                   <WifiOff className="h-3 w-3 text-primary" />
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
-                <div className="p-3 bg-secondary rounded-lg">
-                  <FileIcon className="h-6 w-6 text-secondary-foreground" />
+                <div className="p-3 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl">
+                  <FileIcon className="h-6 w-6 text-accent" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="opacity-0 group-hover:opacity-100"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-muted/50"
                     >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setPreviewFile(item)}>
+                  <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border/50">
+                    <DropdownMenuItem onClick={() => setPreviewFile(item)} className="cursor-pointer">
                       <Eye className="mr-2 h-4 w-4" />
                       Preview
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDownload(item)}>
+                    <DropdownMenuItem onClick={() => handleDownload(item)} className="cursor-pointer">
                       <Download className="mr-2 h-4 w-4" />
                       Download
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setRenameItem({ id: item.id, name: item.name, type: "file" })}
+                      className="cursor-pointer"
                     >
                       <Edit className="mr-2 h-4 w-4" />
                       Rename
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setMoveItem({ id: item.id, name: item.name, type: "file", folderId: item.folder_id })}
+                      className="cursor-pointer"
                     >
                       <FolderInput className="mr-2 h-4 w-4" />
                       Move
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDuplicate(item)}>
+                    <DropdownMenuItem onClick={() => handleDuplicate(item)} className="cursor-pointer">
                       <Copy className="mr-2 h-4 w-4" />
                       Duplicate
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShare(item)}>
+                    <DropdownMenuItem onClick={() => handleShare(item)} className="cursor-pointer">
                       <Share2 className="mr-2 h-4 w-4" />
                       {item.is_shareable ? "Disable" : "Enable"} Sharing
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleToggleOffline(item)}>
+                    <DropdownMenuSeparator className="bg-border/50" />
+                    <DropdownMenuItem onClick={() => handleToggleOffline(item)} className="cursor-pointer">
                       {item.is_offline ? (
                         <>
                           <Wifi className="mr-2 h-4 w-4" />
@@ -498,7 +506,7 @@ const FileGrid = ({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDelete(item.id, item.storage_path)}
-                      className="text-destructive"
+                      className="text-destructive cursor-pointer focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -507,9 +515,10 @@ const FileGrid = ({
                 </DropdownMenu>
               </div>
               <h3 className="font-medium truncate mb-1">{item.name}</h3>
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                <p>{formatBytes(item.file_size)}</p>
-                <p>{format(new Date(item.created_at), "MMM d, yyyy")}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{formatBytes(item.file_size)}</span>
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                <span>{format(new Date(item.created_at), "MMM d, yyyy")}</span>
               </div>
             </Card>
           )

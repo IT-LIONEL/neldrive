@@ -66,21 +66,30 @@ export const InstallPrompt = () => {
   if (!showPrompt) return null;
 
   return (
-    <Alert className="mb-4 border-primary/50 bg-primary/5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <AlertDescription className="flex items-center gap-2">
+    <Alert className="mb-6 border-primary/30 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/20 rounded-lg">
             <Download className="h-4 w-4 text-primary" />
-            <span>
-              <strong>Install NelTech</strong> for a better experience! Works on phones, tablets, and computers.
-            </span>
+          </div>
+          <AlertDescription className="text-foreground">
+            <strong className="text-primary">Install NelTech</strong> for a better experience! Works on phones, tablets, and computers.
           </AlertDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleInstallClick}>
+          <Button 
+            size="sm" 
+            onClick={handleInstallClick}
+            className="bg-primary hover:bg-primary/90 shadow-md"
+          >
             Install
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleDismiss}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleDismiss}
+            className="h-8 w-8 hover:bg-muted/50"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
