@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, WifiOff, Wifi, Lock, Unlock, ShieldAlert } from "lucide-react";
+import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, WifiOff, Wifi, Lock, Unlock, ShieldAlert, Link } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ import { RenameDialog } from "./RenameDialog";
 import { MoveDialog } from "./MoveDialog";
 import { LockFolderDialog } from "./LockFolderDialog";
 import { UnlockFolderDialog } from "./UnlockFolderDialog";
+import { ShareFolderDialog } from "./ShareFolderDialog";
 import { saveFileOffline, removeOfflineFile, getOfflineFile } from "@/lib/offlineStorage";
 
 interface File {
@@ -47,6 +48,10 @@ interface Folder {
   created_at: string;
   is_locked?: boolean;
   password_hash?: string | null;
+  is_shareable?: boolean;
+  shareable_token?: string;
+  share_expires_at?: string | null;
+  share_password_hash?: string | null;
 }
 
 interface FileGridProps {
@@ -75,6 +80,7 @@ const FileGrid = ({
   const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean } | null>(null);
   const [unlockFolder, setUnlockFolder] = useState<{ id: string; name: string; passwordHash: string } | null>(null);
   const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
+  const [shareFolder, setShareFolder] = useState<{ id: string; name: string; isShareable: boolean; shareableToken: string } | null>(null);
 
   const logAudit = async (fileId: string, action: string) => {
     try {
@@ -480,6 +486,22 @@ const FileGrid = ({
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
+                        setShareFolder({
+                          id: item.id,
+                          name: item.name,
+                          isShareable: item.is_shareable || false,
+                          shareableToken: item.shareable_token || '',
+                        });
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Share2 className="mr-2 h-4 w-4" />
+                      {item.is_shareable ? "share --settings" : "share --enable"}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border/50" />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleDeleteFolder(item.id);
                       }}
                       className="text-destructive cursor-pointer focus:text-destructive"
@@ -493,6 +515,7 @@ const FileGrid = ({
               <h3 className="font-medium truncate mb-1 flex items-center gap-2">
                 {item.name}
                 {item.is_locked && <Lock className="h-3 w-3 text-destructive" />}
+                {item.is_shareable && <Link className="h-3 w-3 text-accent" />}
               </h3>
               <p className="text-xs text-muted-foreground">
                 {format(new Date(item.created_at), "MMM d, yyyy")}
@@ -666,6 +689,21 @@ const FileGrid = ({
               onFolderClick(pendingFolderId);
               setPendingFolderId(null);
             }
+          }}
+        />
+      )}
+
+      {shareFolder && (
+        <ShareFolderDialog
+          open={!!shareFolder}
+          onOpenChange={(open) => !open && setShareFolder(null)}
+          folderId={shareFolder.id}
+          folderName={shareFolder.name}
+          isShareable={shareFolder.isShareable}
+          shareableToken={shareFolder.shareableToken}
+          onSuccess={() => {
+            setShareFolder(null);
+            onFolderDeleted();
           }}
         />
       )}
