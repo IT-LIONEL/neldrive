@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Folder, FileIcon, Download, Lock, ShieldAlert, Eye, EyeOff, AlertTriangle, Clock } from "lucide-react";
+import { Folder, FileIcon, Download, Lock, ShieldAlert, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { formatBytes } from "@/lib/utils";
 import { format } from "date-fns";
@@ -58,40 +58,36 @@ const SharedFolder = () => {
     }
 
     try {
-      // Fetch folder info directly
-      const { data: folder, error: folderError } = await supabase
-        .from("folders")
-        .select("id, name, share_password_hash, share_expires_at, is_shareable")
-        .eq("shareable_token", token)
-        .eq("is_shareable", true)
-        .single();
+      // Use edge function to bypass RLS
+      const { data, error: fnError } = await supabase.functions.invoke("get-shared-folder", {
+        body: { token, action: "info" },
+      });
 
-      if (folderError || !folder) {
-        setError("Shared folder not found or link has expired");
+      if (fnError || data?.error) {
+        setError(data?.error || "Shared folder not found or link has expired");
         setIsLoading(false);
         return;
       }
 
-      // Check if expired
-      if (folder.share_expires_at && new Date(folder.share_expires_at) < new Date()) {
+      if (data.is_expired) {
         setError("This share link has expired");
         setIsLoading(false);
         return;
       }
 
       const info: SharedFolderInfo = {
-        folder_id: folder.id,
-        folder_name: folder.name,
-        has_password: !!folder.share_password_hash,
-        is_expired: false,
+        folder_id: data.folder_id,
+        folder_name: data.folder_name,
+        has_password: data.has_password,
+        is_expired: data.is_expired,
       };
 
       setFolderInfo(info);
 
       // If no password required, fetch files immediately
-      if (!folder.share_password_hash) {
+      if (!data.has_password) {
         setIsUnlocked(true);
-        await fetchFiles(folder.id);
+        await fetchFiles(null);
       }
     } catch (err) {
       setError("Failed to load shared folder");
@@ -100,16 +96,18 @@ const SharedFolder = () => {
     }
   };
 
-  const fetchFiles = async (folderId: string) => {
+  const fetchFiles = async (hash: string | null) => {
     try {
-      const { data, error } = await supabase
-        .from("files")
-        .select("id, name, file_type, file_size, storage_path, created_at")
-        .eq("folder_id", folderId);
+      const { data, error: fnError } = await supabase.functions.invoke("get-shared-folder", {
+        body: { token, action: "files", passwordHash: hash },
+      });
 
-      if (error) throw error;
+      if (fnError || data?.error) {
+        toast.error(data?.error || "Failed to load files");
+        return;
+      }
 
-      setFiles(data?.map(f => ({
+      setFiles(data.files?.map((f: any) => ({
         file_id: f.id,
         file_name: f.name,
         file_type: f.file_type,
@@ -131,24 +129,22 @@ const SharedFolder = () => {
     setIsVerifying(true);
     try {
       const hash = await hashPassword(password);
-      setPasswordHash(hash);
+      
+      // Verify password via edge function
+      const { data, error: fnError } = await supabase.functions.invoke("get-shared-folder", {
+        body: { token, action: "verify", passwordHash: hash },
+      });
 
-      // Verify password by checking against stored hash
-      const { data: folder, error } = await supabase
-        .from("folders")
-        .select("id, share_password_hash")
-        .eq("id", folderInfo.folder_id)
-        .single();
-
-      if (error || !folder) {
+      if (fnError) {
         toast.error("Verification failed");
         return;
       }
 
-      if (folder.share_password_hash === hash) {
+      if (data.valid) {
+        setPasswordHash(hash);
         setIsUnlocked(true);
         toast.success("Access granted!");
-        await fetchFiles(folderInfo.folder_id);
+        await fetchFiles(hash);
       } else {
         toast.error("Incorrect password");
       }
@@ -161,23 +157,25 @@ const SharedFolder = () => {
 
   const handleDownload = async (file: SharedFile) => {
     try {
-      const { data, error } = await supabase.storage
-        .from("user-files")
-        .download(file.storage_path);
+      // Use the download-shared-file edge function for secure downloads
+      const { data, error } = await supabase.functions.invoke("download-shared-file", {
+        body: { token, storagePath: file.storage_path, folderToken: token },
+      });
 
       if (error) throw error;
 
-      const blob = new Blob([data], { type: file.file_type });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.file_name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success("Download started");
+      if (data && data.file) {
+        const blob = new Blob([new Uint8Array(data.file)], { type: file.file_type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success("Download started");
+      }
     } catch (err) {
       toast.error("Failed to download file");
     }
