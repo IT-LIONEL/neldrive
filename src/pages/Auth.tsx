@@ -245,7 +245,7 @@ const Auth = () => {
                     <Label htmlFor="reset-email" className="text-xs font-mono text-primary uppercase tracking-wider">Email_Address</Label>
                     <div className="relative group">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary transition-colors group-focus-within:text-accent" />
-                      <Input id="reset-email" type="email" placeholder="user@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
+                      <Input id="reset-email" type="email" placeholder="neltech@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
                     </div>
                   </div>
                   <Button type="submit" className="w-full h-12 font-mono gradient-primary hover:shadow-glow transition-all text-primary-foreground font-semibold" disabled={isLoading}>
@@ -270,7 +270,7 @@ const Auth = () => {
                         <Label htmlFor="signin-email" className="text-xs font-mono text-primary uppercase tracking-wider">Email_Address</Label>
                         <div className="relative group">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary transition-colors group-focus-within:text-accent" />
-                          <Input id="signin-email" type="email" placeholder="user@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
+                          <Input id="signin-email" type="email" placeholder="neltech@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -298,7 +298,7 @@ const Auth = () => {
                         <Label htmlFor="signup-email" className="text-xs font-mono text-primary uppercase tracking-wider">Email_Address</Label>
                         <div className="relative group">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary transition-colors group-focus-within:text-accent" />
-                          <Input id="signup-email" type="email" placeholder="user@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
+                          <Input id="signup-email" type="email" placeholder="neltech@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-12 pl-10 font-mono bg-muted/50 border-primary/30 focus:border-accent focus:shadow-glow-cyan transition-all" />
                         </div>
                       </div>
                       <div className="space-y-2">
