@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Cloud } from "lucide-react";
+import { Shield, Lock, Mail } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -65,7 +65,6 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Check if user needs to change password
       if (data.user?.user_metadata?.needs_password_change) {
         setShowPasswordChangePrompt(true);
         toast.success("Signed in successfully!");
@@ -151,9 +150,12 @@ const Auth = () => {
   return (
     <>
       <AlertDialog open={showPasswordChangePrompt} onOpenChange={setShowPasswordChangePrompt}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-border/50">
           <AlertDialogHeader>
-            <AlertDialogTitle>Change Your Password</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-primary" />
+              Change Your Password
+            </AlertDialogTitle>
             <AlertDialogDescription>
               You're currently using a generated password. We recommend changing it to something memorable.
             </AlertDialogDescription>
@@ -168,6 +170,7 @@ const Auth = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 minLength={6}
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
@@ -179,6 +182,7 @@ const Auth = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 minLength={6}
+                className="h-11"
               />
             </div>
           </div>
@@ -193,127 +197,175 @@ const Auth = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-background p-4">
-        <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center">
-              <Cloud className="h-8 w-8 text-primary-foreground" />
-            </div>
-          </div>
-          <div>
-            <CardTitle className="text-3xl font-bold">NelTech</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Your secure cloud storage solution
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {showResetPassword ? (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+      <div className="min-h-screen flex items-center justify-center gradient-bg p-4 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/10 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          {/* Logo and branding */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl gradient-primary blur-xl opacity-50" />
+                <img 
+                  src="/icon-192x192.png" 
+                  alt="NelTech Logo" 
+                  className="relative h-20 w-20 rounded-2xl shadow-lg"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send Reset Link"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => setShowResetPassword(false)}
-              >
-                Back to Sign In
-              </Button>
-            </form>
-          ) : (
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
+            </div>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">NelTech</h1>
+            <p className="text-muted-foreground mt-2">Secure Cloud Storage</p>
+          </div>
+
+          <Card className="border-border/50 shadow-lg backdrop-blur-sm bg-card/95">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-xl font-semibold">Welcome back</CardTitle>
+              <CardDescription>
+                Sign in to access your files
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {showResetPassword ? (
+                <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                    <Label htmlFor="reset-email" className="text-sm font-medium">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="h-11 pl-10"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
+                    {isLoading ? "Sending..." : "Send Reset Link"}
                   </Button>
                   <Button
                     type="button"
-                    variant="link"
-                    className="w-full text-sm"
-                    onClick={() => setShowResetPassword(true)}
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setShowResetPassword(false)}
                   >
-                    Forgot Password?
+                    Back to Sign In
                   </Button>
                 </form>
-              </TabsContent>
-            
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              ) : (
+                <Tabs defaultValue="signin" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6 h-11 p-1 bg-muted/50">
+                    <TabsTrigger value="signin" className="h-9 font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      Sign In
+                    </TabsTrigger>
+                    <TabsTrigger value="signup" className="h-9 font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                      Sign Up
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="signin">
+                    <form onSubmit={handleSignIn} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signin-email" className="text-sm font-medium">Email Address</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="signin-email"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="h-11 pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signin-password" className="text-sm font-medium">Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="signin-password"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="h-11 pl-10"
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
+                        {isLoading ? "Signing in..." : "Sign In"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="w-full text-sm text-muted-foreground hover:text-primary"
+                        onClick={() => setShowResetPassword(true)}
+                      >
+                        Forgot Password?
+                      </Button>
+                    </form>
+                  </TabsContent>
+                
+                  <TabsContent value="signup">
+                    <form onSubmit={handleSignUp} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email" className="text-sm font-medium">Email Address</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="signup-email"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="h-11 pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="signup-password"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            className="h-11 pl-10"
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
+                        {isLoading ? "Creating account..." : "Create Account"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Security badge */}
+          <div className="flex items-center justify-center gap-2 mt-6 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            <span>256-bit SSL encrypted</span>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

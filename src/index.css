@@ -2,93 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* NelTech Design System - Fresh, modern cloud storage theme */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 210 30% 98%;
+    --foreground: 220 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 25% 10%;
 
-    --primary: 217 91% 60%;
+    /* Vibrant teal-cyan primary */
+    --primary: 175 84% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Soft lavender secondary */
+    --secondary: 250 60% 96%;
+    --secondary-foreground: 250 40% 30%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 15% 46%;
 
-    --accent: 217 91% 60%;
+    /* Warm coral accent */
+    --accent: 15 90% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 175 84% 40%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    /* Enhanced shadows */
+    --shadow-sm: 0 1px 3px 0 hsl(220 25% 10% / 0.06);
+    --shadow-md: 0 4px 12px -2px hsl(220 25% 10% / 0.08);
+    --shadow-lg: 0 12px 32px -8px hsl(220 25% 10% / 0.12);
+    --shadow-glow: 0 0 40px hsl(175 84% 40% / 0.2);
     
-    --transition-base: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-background: 0 0% 98%;
+    /* Gradient definitions */
+    --gradient-primary: linear-gradient(135deg, hsl(175 84% 40%), hsl(190 80% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(15 90% 60%), hsl(35 95% 55%));
+    --gradient-bg: linear-gradient(180deg, hsl(210 30% 98%), hsl(220 30% 95%));
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 220 20% 30%;
+    --sidebar-primary: 175 84% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 250 60% 96%;
+    --sidebar-accent-foreground: 250 40% 30%;
+    --sidebar-border: 220 20% 90%;
+    --sidebar-ring: 175 84% 40%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 220 25% 8%;
+    --foreground: 210 30% 96%;
 
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 25% 12%;
+    --card-foreground: 210 30% 96%;
 
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 30% 96%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* Vibrant teal-cyan primary */
+    --primary: 175 75% 50%;
+    --primary-foreground: 220 25% 8%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    /* Deep purple secondary */
+    --secondary: 250 30% 20%;
+    --secondary-foreground: 250 60% 85%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 25% 16%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 217 91% 60%;
+    /* Warm coral accent */
+    --accent: 15 85% 55%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 210 30% 96%;
 
-    --border: 217 33% 24%;
-    --input: 217 33% 24%;
-    --ring: 217 91% 60%;
+    --border: 220 25% 20%;
+    --input: 220 25% 20%;
+    --ring: 175 75% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(175 75% 50%), hsl(190 70% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(15 85% 55%), hsl(35 90% 50%));
+    --gradient-bg: linear-gradient(180deg, hsl(220 25% 8%), hsl(220 30% 6%));
+
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 175 75% 50%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 250 30% 20%;
+    --sidebar-accent-foreground: 250 60% 85%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 175 75% 50%;
   }
 }
 
@@ -98,6 +115,24 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-bg {
+    background: var(--gradient-bg);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
   }
 }
