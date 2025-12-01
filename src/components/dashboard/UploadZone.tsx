@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, FileIcon, WifiOff } from "lucide-react";
+import { Upload, FileIcon, WifiOff, CloudUpload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
@@ -22,7 +22,6 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload to storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
@@ -32,7 +31,6 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
 
       if (uploadError) throw uploadError;
 
-      // Create database record
       const { error: dbError } = await supabase.from("files").insert({
         name: file.name,
         folder_id: currentFolderId,
@@ -52,11 +50,9 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
 
-      // Check if online
       const isOnline = navigator.onLine;
 
       if (!isOnline) {
-        // Queue uploads for when back online
         setUploading(true);
         setProgress(0);
 
@@ -89,7 +85,6 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
         return;
       }
 
-      // Upload immediately if online
       setUploading(true);
       setProgress(0);
 
@@ -123,36 +118,48 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
   return (
     <Card
       {...getRootProps()}
-      className={`mb-6 p-8 border-2 border-dashed transition-all cursor-pointer ${
+      className={`mb-6 p-6 border-2 border-dashed transition-all cursor-pointer rounded-xl ${
         isDragActive
-          ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/50"
+          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+          : "border-border/50 hover:border-primary/50 hover:bg-muted/30"
       }`}
     >
       <input {...getInputProps()} />
-      <div className="flex flex-col items-center justify-center text-center space-y-4">
+      <div className="flex flex-col items-center justify-center text-center space-y-3">
         {uploading ? (
           <>
-            <FileIcon className="h-12 w-12 text-primary animate-pulse" />
+            <div className="p-4 bg-primary/10 rounded-full animate-pulse">
+              <CloudUpload className="h-8 w-8 text-primary" />
+            </div>
             <div className="w-full max-w-xs space-y-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium">
                 Uploading... {Math.round(progress)}%
               </p>
-              <Progress value={progress} />
+              <Progress value={progress} className="h-2" />
             </div>
           </>
         ) : (
           <>
-            <Upload className="h-12 w-12 text-muted-foreground" />
+            <div className={`p-4 rounded-full transition-all ${
+              isDragActive ? "bg-primary/20 scale-110" : "bg-muted/50"
+            }`}>
+              <Upload className={`h-8 w-8 transition-colors ${
+                isDragActive ? "text-primary" : "text-muted-foreground"
+              }`} />
+            </div>
             <div>
-              <p className="text-base font-medium">
+              <p className="text-sm font-medium">
                 {isDragActive ? "Drop files here" : "Drag & drop files here"}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 or click to browse
               </p>
             </div>
-            <Button variant="secondary" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="mt-2 border-primary/30 hover:bg-primary/10 hover:text-primary"
+            >
               Choose Files
             </Button>
           </>
