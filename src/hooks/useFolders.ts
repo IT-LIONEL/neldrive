@@ -7,17 +7,19 @@ export const useFolders = (parentId: string | null, searchQuery: string) => {
     queryFn: async () => {
       let queryBuilder = supabase
         .from("folders")
-        .select("*")
+        .select("id, name, created_at, parent_id, is_locked, password_hash")
         .order("created_at", { ascending: false });
 
-      if (parentId) {
-        queryBuilder = queryBuilder.eq("parent_id", parentId);
-      } else {
-        queryBuilder = queryBuilder.is("parent_id", null);
-      }
-
+      // If searching, search across ALL folders (global search)
       if (searchQuery) {
         queryBuilder = queryBuilder.ilike("name", `%${searchQuery}%`);
+      } else {
+        // Only filter by parent when not searching
+        if (parentId) {
+          queryBuilder = queryBuilder.eq("parent_id", parentId);
+        } else {
+          queryBuilder = queryBuilder.is("parent_id", null);
+        }
       }
 
       const { data, error } = await queryBuilder;

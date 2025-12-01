@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, Folder, Plus, WifiOff, ChevronRight, HardDrive, Database } from "lucide-react";
+import { Home, Folder, Plus, WifiOff, ChevronRight, HardDrive, Database, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFolders } from "@/hooks/useFolders";
 import { useStorage, formatStorageSize } from "@/hooks/useStorage";
@@ -160,7 +160,7 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
               <p className="text-xs font-semibold text-primary uppercase tracking-wider px-3 mb-3 text-glow">
                 // Folders
               </p>
-              {folders.map((folder) => (
+              {folders.map((folder: any) => (
                 <Button
                   key={folder.id}
                   variant={currentFolderId === folder.id ? "secondary" : "ghost"}
@@ -171,8 +171,15 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated }: S
                   }`}
                   onClick={() => onFolderSelect(folder.id)}
                 >
-                  <Folder className="mr-3 h-4 w-4 text-primary" />
+                  {folder.is_locked ? (
+                    <Lock className="mr-3 h-4 w-4 text-destructive" />
+                  ) : (
+                    <Folder className="mr-3 h-4 w-4 text-primary" />
+                  )}
                   <span className="truncate">{folder.name}</span>
+                  {folder.is_locked && (
+                    <Lock className="ml-auto h-3 w-3 text-destructive" />
+                  )}
                 </Button>
               ))}
             </div>
