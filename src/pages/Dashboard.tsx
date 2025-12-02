@@ -31,12 +31,26 @@ const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [unlockedFolders, setUnlockedFolders] = useState<UnlockedFolder[]>([]);
+  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
 
   const { files, isLoading: filesLoading, refetch: refetchFiles } = useFiles(currentFolderId, searchQuery);
   const { folders, isLoading: foldersLoading, refetch: refetchFolders } = useFolders(currentFolderId, searchQuery);
   const { refetch: refetchStorage } = useStorage();
   
   useOfflineSync();
+
+  // Load user profile
+  const loadProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("user_id", userId)
+      .maybeSingle();
+    
+    if (data) {
+      setProfile(data);
+    }
+  };
 
   // Check and auto-lock folders every 30 seconds
   useEffect(() => {
@@ -66,6 +80,7 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        loadProfile(session.user.id);
       }
     });
 
@@ -74,6 +89,7 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        loadProfile(session.user.id);
       }
     });
 
@@ -160,6 +176,8 @@ const Dashboard = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        displayName={profile?.display_name}
+        avatarUrl={profile?.avatar_url}
       />
       
       <div className="flex relative">
