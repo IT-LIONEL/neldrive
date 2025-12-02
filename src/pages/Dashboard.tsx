@@ -218,18 +218,21 @@ const Dashboard = () => {
 
             {/* Welcome Section */}
             <div className="mb-6">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-2">
                 <Terminal className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold font-mono text-primary text-glow">
-                  {currentFolderId ? "$ ls ./folder" : "$ ls ~/drive"}
+                <h2 className="text-xl font-semibold font-mono text-primary text-glow">
+                  Welcome back, <span className="text-accent">{profile?.display_name || user.email?.split("@")[0] || "User"}</span>
                 </h2>
               </div>
-              <p className="text-sm text-muted-foreground font-mono">
-                {currentFolderId 
-                  ? "// browsing folder contents" 
-                  : "// secure cloud storage • upload • organize • share"
-                }
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-primary font-mono text-sm">$</span>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {currentFolderId 
+                    ? "ls ./folder // browsing folder contents" 
+                    : "ls ~/drive // secure_cloud_storage • upload • organize • share"
+                  }
+                </p>
+              </div>
             </div>
             
             <UploadZone
