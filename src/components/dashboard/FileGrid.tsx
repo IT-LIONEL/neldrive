@@ -90,7 +90,7 @@ const FileGrid = ({
   const [draggedFile, setDraggedFile] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "type">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean; autoLockMinutes?: number | null } | null>(null);
+  const [lockFolder, setLockFolder] = useState<{ id: string; name: string; isLocked: boolean; autoLockMinutes?: number | null; passwordHash?: string | null } | null>(null);
   const [unlockFolder, setUnlockFolder] = useState<{ id: string; name: string; passwordHash: string; autoLockMinutes?: number | null } | null>(null);
   const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
   const [shareFolder, setShareFolder] = useState<{ id: string; name: string; isShareable: boolean; shareableToken: string } | null>(null);
@@ -517,7 +517,8 @@ const FileGrid = ({
                           id: item.id, 
                           name: item.name, 
                           isLocked: item.is_locked || false,
-                          autoLockMinutes: item.auto_lock_minutes
+                          autoLockMinutes: item.auto_lock_minutes,
+                          passwordHash: item.password_hash
                         });
                       }}
                       className="cursor-pointer"
@@ -727,6 +728,7 @@ const FileGrid = ({
           folderName={lockFolder.name}
           isLocked={lockFolder.isLocked}
           autoLockMinutes={lockFolder.autoLockMinutes}
+          passwordHash={lockFolder.passwordHash}
           onSuccess={() => {
             setLockFolder(null);
             onFolderDeleted();

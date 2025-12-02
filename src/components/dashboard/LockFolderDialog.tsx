@@ -23,6 +23,7 @@ interface LockFolderDialogProps {
   isLocked: boolean;
   onSuccess: () => void;
   autoLockMinutes?: number | null;
+  passwordHash?: string | null;
 }
 
 // Simple hash function for password (in production, use bcrypt on server)
@@ -42,6 +43,7 @@ export const LockFolderDialog = ({
   isLocked,
   onSuccess,
   autoLockMinutes: initialAutoLock,
+  passwordHash: folderPasswordHash,
 }: LockFolderDialogProps) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -49,6 +51,10 @@ export const LockFolderDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [autoQuarantine, setAutoQuarantine] = useState(false);
   const [autoLockMinutes, setAutoLockMinutes] = useState(5);
+  
+  // For unlock verification
+  const [folderPassword, setFolderPassword] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
 
   useEffect(() => {
     if (initialAutoLock) {
@@ -106,8 +112,45 @@ export const LockFolderDialog = ({
   };
 
   const handleUnlock = async () => {
+    if (!folderPassword) {
+      toast.error("Folder password is required");
+      return;
+    }
+    if (!accountPassword) {
+      toast.error("Account password is required");
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // Verify folder password
+      const folderHash = await hashPassword(folderPassword);
+      if (folderHash !== folderPasswordHash) {
+        toast.error("Incorrect folder password");
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify account password by re-authenticating
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast.error("Unable to verify account");
+        setIsLoading(false);
+        return;
+      }
+
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: accountPassword,
+      });
+
+      if (authError) {
+        toast.error("Incorrect account password");
+        setIsLoading(false);
+        return;
+      }
+
+      // Both passwords verified, proceed to unlock
       const { error } = await supabase
         .from("folders")
         .update({ 
@@ -119,7 +162,9 @@ export const LockFolderDialog = ({
 
       if (error) throw error;
 
-      toast.success("Folder unlocked!");
+      toast.success("Folder lock removed!");
+      setFolderPassword("");
+      setAccountPassword("");
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -255,8 +300,51 @@ export const LockFolderDialog = ({
         ) : (
           <div className="py-4 space-y-4">
             <p className="text-sm text-muted-foreground">
-              // This will remove password protection. Anyone with access to your account can view the folder.
+              // Removing lock requires both folder password and account password
             </p>
+
+            {/* Folder Password */}
+            <div className="space-y-2">
+              <Label htmlFor="folder-password-unlock" className="text-xs text-destructive uppercase">
+                Folder_Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                <Input
+                  id="folder-password-unlock"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={folderPassword}
+                  onChange={(e) => setFolderPassword(e.target.value)}
+                  className="h-11 pl-10 pr-10 font-mono bg-muted/50 border-destructive/30 focus:border-destructive"
+                />
+              </div>
+            </div>
+
+            {/* Account Password */}
+            <div className="space-y-2">
+              <Label htmlFor="account-password-unlock" className="text-xs text-destructive uppercase">
+                Account_Password
+              </Label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                <Input
+                  id="account-password-unlock"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={accountPassword}
+                  onChange={(e) => setAccountPassword(e.target.value)}
+                  className="h-11 pl-10 pr-10 font-mono bg-muted/50 border-destructive/30 focus:border-destructive"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-destructive"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
 
             {/* Update Auto-Quarantine Section for locked folders */}
             <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30 space-y-3">
