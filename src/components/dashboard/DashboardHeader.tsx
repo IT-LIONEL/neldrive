@@ -20,6 +20,8 @@ interface DashboardHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onToggleSidebar: () => void;
+  displayName?: string | null;
+  avatarUrl?: string | null;
 }
 
 const DashboardHeader = ({
@@ -28,9 +30,12 @@ const DashboardHeader = ({
   searchQuery,
   onSearchChange,
   onToggleSidebar,
+  displayName,
+  avatarUrl,
 }: DashboardHeaderProps) => {
   const navigate = useNavigate();
-  const userInitials = user.email?.charAt(0).toUpperCase() || "U";
+  const userInitials = displayName?.[0]?.toUpperCase() || user.email?.charAt(0).toUpperCase() || "U";
+  const showName = displayName || user.email?.split("@")[0] || "User";
 
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-primary/20">
@@ -79,24 +84,27 @@ const DashboardHeader = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-primary/50 transition-all">
+              <Button variant="ghost" className="relative h-10 gap-2 px-2 rounded-full hover:ring-2 hover:ring-primary/50 transition-all">
                 <Avatar className="h-9 w-9 border-2 border-primary/30">
-                  <AvatarImage src="" />
+                  <AvatarImage src={avatarUrl || ""} />
                   <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-mono font-bold">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
+                <span className="hidden md:block font-mono text-sm text-foreground max-w-24 truncate">
+                  {showName}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 border-primary/20 bg-card/95 backdrop-blur-xl font-mono">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium text-primary">user@neltech</p>
+                  <p className="text-sm font-medium text-primary">{showName}</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
