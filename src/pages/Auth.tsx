@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, ArrowRight, Sparkles } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -90,92 +89,138 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
-      <Card className="w-full max-w-md shadow-2xl border-border/50 backdrop-blur-sm">
-        <CardHeader className="space-y-1 text-center pb-6">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            {isLogin ? "Welcome back" : "Create account"}
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            {isLogin ? "Sign in to your account to continue" : "Enter your details to get started"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-cyber-pink/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-cyber-blue/10 rounded-full blur-3xl animate-float" />
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 cyber-grid opacity-30" />
+
+      <div className="relative z-10 w-full max-w-md mx-4">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-cyber-pink mb-4 shadow-glow-primary">
+            <Sparkles className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {isLogin ? "Welcome Back" : "Get Started"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isLogin ? "Sign in to continue to your account" : "Create your account to begin"}
+          </p>
+        </div>
+
+        {/* Auth Card */}
+        <div className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email Address
+              </Label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-primary/20 rounded-xl transition-all"
                   disabled={loading}
                 />
               </div>
             </div>
+
+            {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                Password
+              </Label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="pl-12 pr-12 h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-primary/20 rounded-xl transition-all"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
+            {/* Forgot Password */}
             {isLogin && (
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-sm text-primary hover:underline"
-                disabled={loading}
-              >
-                Forgot password?
-              </button>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                  disabled={loading}
+                >
+                  Forgot password?
+                </button>
+              </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-cyber-pink hover:opacity-90 text-primary-foreground font-semibold shadow-glow-primary transition-all duration-300 group"
+              disabled={loading}
+            >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isLogin ? (
-                "Sign in"
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                "Create account"
+                <>
+                  {isLogin ? "Sign In" : "Create Account"}
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-            </span>
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card/50 px-4 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          {/* Toggle Auth Mode */}
+          <p className="text-center text-sm text-muted-foreground">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-primary font-medium hover:underline"
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
               disabled={loading}
             >
               {isLogin ? "Sign up" : "Sign in"}
             </button>
-          </div>
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-muted-foreground mt-8">
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </p>
+      </div>
     </div>
   );
 };
