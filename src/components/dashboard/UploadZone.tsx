@@ -2,11 +2,10 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, FileIcon, WifiOff, CloudUpload } from "lucide-react";
+import { Upload, CloudUpload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { queueUpload } from "@/lib/offlineStorage";
 
 interface UploadZoneProps {
   currentFolderId: string | null;
@@ -49,41 +48,6 @@ const UploadZone = ({ currentFolderId, onUploadSuccess }: UploadZoneProps) => {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
-
-      const isOnline = navigator.onLine;
-
-      if (!isOnline) {
-        setUploading(true);
-        setProgress(0);
-
-        try {
-          const totalFiles = acceptedFiles.length;
-          let queued = 0;
-
-          for (const file of acceptedFiles) {
-            await queueUpload(
-              file.name,
-              file,
-              file.type || "application/octet-stream",
-              file.size,
-              currentFolderId
-            );
-            queued++;
-            setProgress((queued / totalFiles) * 100);
-          }
-
-          toast.success(
-            `${totalFiles} file(s) queued for upload. They will be uploaded when you're back online.`,
-            { icon: <WifiOff className="h-4 w-4" /> }
-          );
-        } catch (error: any) {
-          toast.error("Failed to queue file for upload");
-        } finally {
-          setUploading(false);
-          setProgress(0);
-        }
-        return;
-      }
 
       setUploading(true);
       setProgress(0);

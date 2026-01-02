@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, Folder, Plus, WifiOff, ChevronRight, HardDrive, Database, Lock, ShieldAlert } from "lucide-react";
+import { Folder, Plus, ChevronRight, HardDrive, Database, Lock, ShieldAlert, Code2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFolders } from "@/hooks/useFolders";
 import { useStorage, formatStorageSize } from "@/hooks/useStorage";
@@ -131,10 +131,10 @@ const Sidebar = ({ isOpen, currentFolderId, onFolderSelect, onFolderCreated, onF
               <Button
                 variant="ghost"
                 className="w-full justify-start h-11 font-mono hover:bg-accent/10 hover:text-accent"
-                onClick={() => navigate("/offline-files")}
+                onClick={() => navigate("/decode")}
               >
-                <WifiOff className="mr-3 h-4 w-4" />
-                Offline_Files
+                <Code2 className="mr-3 h-4 w-4" />
+                Decode
               </Button>
             </div>
 
