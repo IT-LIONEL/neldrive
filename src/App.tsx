@@ -12,6 +12,7 @@ import SharedFile from "./pages/SharedFile";
 import SharedFolder from "./pages/SharedFolder";
 import OfflineFiles from "./pages/OfflineFiles";
 import AppDownload from "./pages/AppDownload";
+import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/appdownload" element={<AppDownload />} />
           <Route path="/share/:token" element={<SharedFile />} />
           <Route path="/shared-folder/:token" element={<SharedFolder />} />
+          <Route path="/api-docs" element={<ApiDocs />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
