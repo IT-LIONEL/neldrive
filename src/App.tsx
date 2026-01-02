@@ -10,7 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Install from "./pages/Install";
 import SharedFile from "./pages/SharedFile";
 import SharedFolder from "./pages/SharedFolder";
-import OfflineFiles from "./pages/OfflineFiles";
+import Decode from "./pages/Decode";
 import AppDownload from "./pages/AppDownload";
 import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
@@ -30,7 +30,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/install" element={<Install />} />
-          <Route path="/offline-files" element={<OfflineFiles />} />
+          <Route path="/decode" element={<Decode />} />
           <Route path="/appdownload" element={<AppDownload />} />
           <Route path="/share/:token" element={<SharedFile />} />
           <Route path="/shared-folder/:token" element={<SharedFolder />} />

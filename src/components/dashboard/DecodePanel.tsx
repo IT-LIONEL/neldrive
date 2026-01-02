@@ -9,7 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Upload, Download, Lock, Image, Loader2, X, AlertCircle } from "lucide-react";
 
-export const SteganographyPanel = () => {
+interface DecodePanelProps {
+  fullWidth?: boolean;
+}
+
+export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
   const [activeTab, setActiveTab] = useState("hide");
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -189,14 +193,14 @@ export const SteganographyPanel = () => {
   };
 
   return (
-    <Card className="border-primary/20 bg-card/50 backdrop-blur">
+    <Card className={`border-primary/20 bg-card/50 backdrop-blur ${fullWidth ? '' : ''}`}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-mono">
           <Eye className="h-5 w-5 text-primary" />
-          <span className="text-primary">Steganography</span>
+          <span className="text-primary">Decode</span>
         </CardTitle>
         <CardDescription className="font-mono text-xs">
-          Hide secret data in images using LSB steganography
+          Hide and extract secret data from images
         </CardDescription>
       </CardHeader>
       <CardContent>

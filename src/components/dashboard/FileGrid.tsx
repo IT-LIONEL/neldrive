@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, WifiOff, Wifi, Lock, Unlock, ShieldAlert, Link } from "lucide-react";
+import { FileIcon, Folder, MoreVertical, Download, Trash2, Share2, Eye, Edit, Copy, FolderInput, ArrowUpDown, Lock, Unlock, ShieldAlert, Link } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +27,6 @@ import { MoveDialog } from "./MoveDialog";
 import { LockFolderDialog } from "./LockFolderDialog";
 import { UnlockFolderDialog } from "./UnlockFolderDialog";
 import { ShareFolderDialog } from "./ShareFolderDialog";
-import { saveFileOffline, removeOfflineFile, getOfflineFile } from "@/lib/offlineStorage";
 
 interface File {
   id: string;
@@ -298,41 +297,6 @@ const FileGrid = ({
     }
   };
 
-  const handleToggleOffline = async (file: File) => {
-    try {
-      const isCurrentlyOffline = file.is_offline;
-      
-      if (!isCurrentlyOffline) {
-        // Download and cache the file
-        const { data, error } = await supabase.storage
-          .from("user-files")
-          .download(file.storage_path);
-
-        if (error) throw error;
-
-        await saveFileOffline(file.id, file.name, data, file.file_type, file.file_size);
-        
-        toast.success("File saved for offline access");
-      } else {
-        // Remove from offline cache
-        await removeOfflineFile(file.id);
-        toast.success("File removed from offline storage");
-      }
-
-      // Update database
-      const { error } = await supabase
-        .from("files")
-        .update({ is_offline: !isCurrentlyOffline })
-        .eq("id", file.id);
-
-      if (error) throw error;
-
-      onFileDeleted();
-    } catch (error: any) {
-      toast.error("Failed to update offline status");
-    }
-  };
-
   const handleDragStart = (fileId: string) => {
     setDraggedFile(fileId);
   };
@@ -590,11 +554,6 @@ const FileGrid = ({
                   <Lock className="h-3 w-3 text-destructive" />
                 </div>
               )}
-              {item.is_offline && !currentFolderLocked && (
-                <div className="absolute top-3 right-3 p-1.5 bg-primary/10 rounded-full">
-                  <WifiOff className="h-3 w-3 text-primary" />
-                </div>
-              )}
               <div className="flex items-start justify-between mb-3">
                 <div className="p-3 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl">
                   <FileIcon className="h-6 w-6 text-accent" />
@@ -641,19 +600,6 @@ const FileGrid = ({
                       {item.is_shareable ? "Disable" : "Enable"} Sharing
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border/50" />
-                    <DropdownMenuItem onClick={() => handleToggleOffline(item)} className="cursor-pointer">
-                      {item.is_offline ? (
-                        <>
-                          <Wifi className="mr-2 h-4 w-4" />
-                          Remove from Offline
-                        </>
-                      ) : (
-                        <>
-                          <WifiOff className="mr-2 h-4 w-4" />
-                          Save for Offline
-                        </>
-                      )}
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDelete(item.id, item.storage_path)}
                       className="text-destructive cursor-pointer focus:text-destructive"
