@@ -10,6 +10,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Sidebar from "@/components/dashboard/Sidebar";
 import FileGrid from "@/components/dashboard/FileGrid";
 import UploadZone from "@/components/dashboard/UploadZone";
+import { SteganographyPanel } from "@/components/dashboard/SteganographyPanel";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { useFiles } from "@/hooks/useFiles";
 import { useFolders } from "@/hooks/useFolders";
@@ -235,25 +236,33 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <UploadZone
-              currentFolderId={currentFolderId}
-              onUploadSuccess={handleUploadSuccess}
-            />
-            
-            <FileGrid
-              files={files}
-              folders={folders}
-              isLoading={filesLoading || foldersLoading}
-              onFolderClick={setCurrentFolderId}
-              onFileDeleted={handleFileDeleted}
-              onFolderDeleted={refetchFolders}
-              onFolderUnlocked={handleUnlockFolder}
-              isFolderUnlocked={isFolderUnlocked}
-              currentFolderLocked={currentFolder?.is_locked && currentFolder?.password_hash && !isFolderUnlocked(currentFolderId || '')}
-              currentFolderPasswordHash={currentFolder?.password_hash || null}
-              currentFolderName={currentFolder?.name || ''}
-              currentFolderAutoLock={(currentFolder as any)?.auto_lock_minutes || null}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3 space-y-6">
+                <UploadZone
+                  currentFolderId={currentFolderId}
+                  onUploadSuccess={handleUploadSuccess}
+                />
+                
+                <FileGrid
+                  files={files}
+                  folders={folders}
+                  isLoading={filesLoading || foldersLoading}
+                  onFolderClick={setCurrentFolderId}
+                  onFileDeleted={handleFileDeleted}
+                  onFolderDeleted={refetchFolders}
+                  onFolderUnlocked={handleUnlockFolder}
+                  isFolderUnlocked={isFolderUnlocked}
+                  currentFolderLocked={currentFolder?.is_locked && currentFolder?.password_hash && !isFolderUnlocked(currentFolderId || '')}
+                  currentFolderPasswordHash={currentFolder?.password_hash || null}
+                  currentFolderName={currentFolder?.name || ''}
+                  currentFolderAutoLock={(currentFolder as any)?.auto_lock_minutes || null}
+                />
+              </div>
+              
+              <div className="lg:col-span-1">
+                <SteganographyPanel />
+              </div>
+            </div>
           </div>
         </main>
       </div>
