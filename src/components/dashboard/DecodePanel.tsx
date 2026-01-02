@@ -1,16 +1,25 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Eye, EyeOff, Upload, Download, Lock, Image, Loader2, X, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Upload, Download, Lock, Image, Loader2, X, AlertCircle, FolderOpen, Check } from "lucide-react";
 
 interface DecodePanelProps {
   fullWidth?: boolean;
+}
+
+interface DriveFile {
+  id: string;
+  name: string;
+  storage_path: string;
+  file_type: string;
 }
 
 export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
@@ -32,6 +41,69 @@ export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
   const [showExtractPassword, setShowExtractPassword] = useState(false);
   const [extractedData, setExtractedData] = useState<string | null>(null);
 
+  // Drive picker state
+  const [showDrivePicker, setShowDrivePicker] = useState(false);
+  const [drivePickerTarget, setDrivePickerTarget] = useState<"hide" | "extract">("hide");
+  const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
+  const [isLoadingDriveFiles, setIsLoadingDriveFiles] = useState(false);
+
+  const loadDriveImages = async () => {
+    setIsLoadingDriveFiles(true);
+    try {
+      const { data, error } = await supabase
+        .from("files")
+        .select("id, name, storage_path, file_type")
+        .in("file_type", ["image/png", "image/jpeg", "image/webp", "image/jpg"])
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setDriveFiles(data || []);
+    } catch (error) {
+      console.error("Failed to load drive images:", error);
+      toast.error("Failed to load images from drive");
+    } finally {
+      setIsLoadingDriveFiles(false);
+    }
+  };
+
+  const openDrivePicker = (target: "hide" | "extract") => {
+    setDrivePickerTarget(target);
+    setShowDrivePicker(true);
+    loadDriveImages();
+  };
+
+  const handleDriveFileSelect = async (file: DriveFile) => {
+    try {
+      const { data: urlData } = await supabase.storage
+        .from("files")
+        .createSignedUrl(file.storage_path, 60);
+
+      if (!urlData?.signedUrl) {
+        throw new Error("Failed to get file URL");
+      }
+
+      const response = await fetch(urlData.signedUrl);
+      const blob = await response.blob();
+      const selectedFile = new File([blob], file.name, { type: file.file_type });
+      const previewUrl = URL.createObjectURL(selectedFile);
+
+      if (drivePickerTarget === "hide") {
+        setHideImage(selectedFile);
+        setHideImagePreview(previewUrl);
+        setResultImage(null);
+      } else {
+        setExtractImage(selectedFile);
+        setExtractImagePreview(previewUrl);
+        setExtractedData(null);
+      }
+
+      setShowDrivePicker(false);
+      toast.success(`Selected: ${file.name}`);
+    } catch (error) {
+      console.error("Failed to load file from drive:", error);
+      toast.error("Failed to load image from drive");
+    }
+  };
   const getImageData = useCallback((file: File): Promise<{ data: string; width: number; height: number }> => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
@@ -237,16 +309,26 @@ export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50">
-                  <Upload className="h-6 w-6 text-muted-foreground mb-1" />
-                  <span className="text-xs text-muted-foreground font-mono">Select image</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="hidden"
-                    onChange={handleHideImageSelect}
-                  />
-                </label>
+                <div className="flex gap-2">
+                  <label className="flex-1 flex flex-col items-center justify-center h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50">
+                    <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground font-mono">Upload</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleHideImageSelect}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openDrivePicker("hide")}
+                    className="flex-1 flex flex-col items-center justify-center h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50"
+                  >
+                    <FolderOpen className="h-6 w-6 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground font-mono">From Drive</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -357,16 +439,26 @@ export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50">
-                  <Image className="h-6 w-6 text-muted-foreground mb-1" />
-                  <span className="text-xs text-muted-foreground font-mono">Select image</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="hidden"
-                    onChange={handleExtractImageSelect}
-                  />
-                </label>
+                <div className="flex gap-2">
+                  <label className="flex-1 flex flex-col items-center justify-center h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50">
+                    <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground font-mono">Upload</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleExtractImageSelect}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openDrivePicker("extract")}
+                    className="flex-1 flex flex-col items-center justify-center h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background/50"
+                  >
+                    <FolderOpen className="h-6 w-6 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground font-mono">From Drive</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -440,6 +532,50 @@ export const DecodePanel = ({ fullWidth }: DecodePanelProps) => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Drive Image Picker Dialog */}
+      <Dialog open={showDrivePicker} onOpenChange={setShowDrivePicker}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-mono text-sm flex items-center gap-2">
+              <FolderOpen className="h-4 w-4 text-primary" />
+              Select from Drive
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[300px] pr-4">
+            {isLoadingDriveFiles ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : driveFiles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <Image className="h-8 w-8 mb-2" />
+                <span className="font-mono text-xs">No images in drive</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {driveFiles.map((file) => (
+                  <button
+                    key={file.id}
+                    onClick={() => handleDriveFileSelect(file)}
+                    className="relative group aspect-square rounded-lg border border-primary/20 overflow-hidden hover:border-primary/50 transition-colors bg-background"
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="font-mono text-[10px] truncate block">{file.name}</span>
+                    </div>
+                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Check className="h-6 w-6 text-primary" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
