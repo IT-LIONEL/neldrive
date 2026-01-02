@@ -2,3 +2,6 @@ project_id = "bfdlmbsvzyowkygmpvfa"
 
 [functions.download-shared-file]
 verify_jwt = false
+
+[functions.steganography]
+verify_jwt = true
