@@ -162,7 +162,7 @@ const SharedFile = () => {
               <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center">
                 <Cloud className="h-6 w-6 text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-bold">NelTech</h1>
+              <h1 className="text-xl font-bold">NelDrive</h1>
             </div>
             <Button variant="ghost" onClick={() => navigate("/")}>
               <ArrowLeft className="mr-2 h-4 w-4" />

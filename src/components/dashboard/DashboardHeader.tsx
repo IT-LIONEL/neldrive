@@ -55,13 +55,13 @@ const DashboardHeader = ({
             <div className="absolute inset-0 rounded-xl bg-primary blur-md opacity-50" />
             <img 
               src="/icon-192x192.png" 
-              alt="NelTech" 
+              alt="NelDrive" 
               className="relative h-10 w-10 rounded-xl border border-primary/30"
             />
           </div>
           <div className="hidden sm:block">
             <h1 className="text-xl font-bold font-mono text-primary text-glow">
-              NelTech
+              NelDrive
             </h1>
             <p className="text-[10px] font-mono text-muted-foreground -mt-1">
               // secure_cloud v2.0
