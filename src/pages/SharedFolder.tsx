@@ -28,7 +28,7 @@ interface SharedFile {
 // Hash function matching the one used in ShareFolderDialog
 const hashPassword = async (password: string): Promise<string> => {
   const encoder = new TextEncoder();
-  const data = encoder.encode(password + "neltech_share_salt_2024");
+  const data = encoder.encode(password + "neldrive_share_salt_2024");
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -337,7 +337,7 @@ const SharedFolder = () => {
       <footer className="border-t border-border/50 bg-card/50 py-4">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-xs text-muted-foreground">
-            Powered by <span className="text-primary">NelTech Cloud</span>
+            Powered by <span className="text-primary">NelDrive Cloud</span>
           </p>
         </div>
       </footer>

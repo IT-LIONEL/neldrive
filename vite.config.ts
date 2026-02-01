@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["icon-192x192.png", "icon-512x512.png"],
       manifest: {
-        name: "NelTech - Secure Cloud Storage",
-        short_name: "NelTech",
-        description: "Store, organize, and share your files securely with NelTech cloud storage",
+        name: "NelDrive - Secure Cloud Storage",
+        short_name: "NelDrive",
+        description: "Store, organize, and share your files securely with NelDrive cloud storage",
         theme_color: "#0EA5E9",
         background_color: "#ffffff",
         display: "standalone",

@@ -54,7 +54,7 @@ const Install = () => {
             </div>
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold">Install NelTech</CardTitle>
+            <CardTitle className="text-3xl font-bold">Install NelDrive</CardTitle>
             <CardDescription className="text-base mt-2">
               Get the full app experience on your device
             </CardDescription>
@@ -71,7 +71,7 @@ const Install = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-2">App Installed!</h3>
                 <p className="text-muted-foreground">
-                  NelTech is now installed on your device. You can access it anytime from your home screen.
+                  NelDrive is now installed on your device. You can access it anytime from your home screen.
                 </p>
               </div>
               <Button onClick={() => navigate("/dashboard")} size="lg" className="w-full">

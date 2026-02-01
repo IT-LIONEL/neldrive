@@ -70,7 +70,7 @@ export const InstallPrompt = () => {
             <Terminal className="h-4 w-4 text-primary" />
           </div>
           <AlertDescription className="text-foreground text-sm">
-            <span className="text-primary font-semibold">$ install NelTech</span>
+            <span className="text-primary font-semibold">$ install NelDrive</span>
             <span className="text-muted-foreground"> // better experience on all devices</span>
           </AlertDescription>
         </div>
