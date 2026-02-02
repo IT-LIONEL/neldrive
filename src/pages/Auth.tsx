@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Loader2, Terminal, User } from "lucide-react";
-
 const Auth = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -14,35 +13,42 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/dashboard");
       }
     });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
         navigate("/dashboard");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error("Please fill in all fields");
       return;
     }
-
     setLoading(true);
-
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Invalid email or password");
@@ -53,10 +59,14 @@ const Auth = () => {
           toast.success("Welcome back!");
         }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const {
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` }
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`
+          }
         });
         if (error) {
           toast.error(error.message);
@@ -70,14 +80,15 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
   const handleForgotPassword = async () => {
     if (!email) {
       toast.error("Please enter your email first");
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const {
+      error
+    } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`
     });
     setLoading(false);
@@ -87,9 +98,7 @@ const Auth = () => {
       toast.success("Password reset link sent to your email");
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background font-mono relative overflow-hidden">
+  return <div className="min-h-screen flex items-center justify-center bg-background font-mono relative overflow-hidden">
       {/* Scanline effect */}
       <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,255,136,0.03)_2px,rgba(0,255,136,0.03)_4px)]" />
       
@@ -146,15 +155,7 @@ const Auth = () => {
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="user@domain.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm"
-                    disabled={loading}
-                  />
+                  <Input id="email" type="email" placeholder="user@domain.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm" disabled={loading} />
                 </div>
               </div>
 
@@ -165,52 +166,25 @@ const Auth = () => {
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm"
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm" disabled={loading} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
               {/* Forgot Password */}
-              {isLogin && (
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="text-xs text-primary hover:text-primary/80 transition-colors"
-                    disabled={loading}
-                  >
+              {isLogin && <div className="flex justify-end">
+                  <button type="button" onClick={handleForgotPassword} className="text-xs text-primary hover:text-primary/80 transition-colors" disabled={loading}>
                     reset --password
                   </button>
-                </div>
-              )}
+                </div>}
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-mono shadow-glow transition-all"
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
+              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-mono shadow-glow transition-all" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                     {isLogin ? "auth --login" : "auth --register"}
-                  </>
-                )}
+                  </>}
               </Button>
             </form>
 
@@ -227,11 +201,7 @@ const Auth = () => {
             {/* Toggle Auth Mode */}
             <p className="text-center text-xs text-muted-foreground">
               {isLogin ? "// no account?" : "// have account?"}{" "}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary font-semibold hover:text-primary/80 transition-colors"
-                disabled={loading}
-              >
+              <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-semibold hover:text-primary/80 transition-colors" disabled={loading}>
                 {isLogin ? "register --new" : "login --existing"}
               </button>
             </p>
@@ -240,13 +210,11 @@ const Auth = () => {
 
         {/* Terminal Footer */}
         <div className="bg-primary/10 border border-t-0 border-primary/30 rounded-b-xl px-4 py-2">
-          <p className="text-[10px] text-muted-foreground text-center">
-            <span className="text-primary">►</span> encrypted_connection • secure_auth_v2.0
+          <p className="text-[10px] text-muted-foreground text-center bg-sidebar-primary">
+            <span className="text-primary">►</span> ​DEVELOPED BY NELTECH DEV GROUP      
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
