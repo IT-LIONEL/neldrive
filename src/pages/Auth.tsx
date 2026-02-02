@@ -98,24 +98,24 @@ const Auth = () => {
       toast.success("Password reset link sent to your email");
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-background font-mono relative overflow-hidden">
+  return <div className="min-h-screen flex items-center justify-center bg-[hsl(222,47%,11%)] font-mono relative overflow-hidden">
       {/* Scanline effect */}
       <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,255,136,0.03)_2px,rgba(0,255,136,0.03)_4px)]" />
       
       {/* Grid pattern */}
-      <div className="absolute inset-0 cyber-grid opacity-20" />
+      <div className="absolute inset-0 cyber-grid opacity-30" />
 
       <div className="relative z-10 w-full max-w-md mx-4">
         {/* Terminal Header */}
-        <div className="bg-card/95 backdrop-blur-xl border border-primary/30 rounded-t-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border-b border-primary/20">
+        <div className="bg-[hsl(217,32%,17%)]/95 backdrop-blur-xl border border-[hsl(142,76%,45%)]/30 rounded-t-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 bg-[hsl(142,76%,45%)]/10 border-b border-[hsl(142,76%,45%)]/20">
             <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-destructive/70" />
+              <div className="w-3 h-3 rounded-full bg-red-500/70" />
               <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-              <div className="w-3 h-3 rounded-full bg-primary/70" />
+              <div className="w-3 h-3 rounded-full bg-[hsl(142,76%,45%)]/70" />
             </div>
             <div className="flex-1 text-center">
-              <span className="text-xs text-primary">neldrive@secure:~/{isLogin ? "login" : "register"}</span>
+              <span className="text-xs text-[hsl(142,76%,45%)]">neldrive@secure:~/{isLogin ? "login" : "register"}</span>
             </div>
           </div>
 
@@ -123,51 +123,51 @@ const Auth = () => {
           <div className="p-6 space-y-6">
             {/* ASCII Logo */}
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary/20 border border-primary/30 mb-4">
-                <Terminal className="w-8 h-8 text-primary" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-[hsl(142,76%,45%)]/20 border border-[hsl(142,76%,45%)]/30 mb-4">
+                <Terminal className="w-8 h-8 text-[hsl(142,76%,45%)]" />
               </div>
-              <h1 className="text-2xl font-bold text-primary text-glow mb-1">
+              <h1 className="text-2xl font-bold text-[hsl(142,76%,45%)] mb-1" style={{ textShadow: '0 0 10px hsl(142 76% 45% / 0.7), 0 0 30px hsl(142 76% 45% / 0.5)' }}>
                 NelDrive
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-400">
                 // {isLogin ? "authenticate user session" : "create new user account"}
               </p>
             </div>
 
             {/* Status Line */}
-            <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
-              <p className="text-xs text-primary">
-                <span className="text-muted-foreground">$</span> system --status
+            <div className="p-3 bg-[hsl(215,19%,20%)]/50 rounded-lg border border-[hsl(215,19%,34%)]/50">
+              <p className="text-xs text-[hsl(142,76%,45%)]">
+                <span className="text-gray-400">$</span> system --status
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                → secure_connection: <span className="text-primary">active</span>
+              <p className="text-xs text-gray-400 mt-1">
+                → secure_connection: <span className="text-[hsl(142,76%,45%)]">active</span>
               </p>
-              <p className="text-xs text-muted-foreground">
-                → encryption: <span className="text-primary">AES-256</span>
+              <p className="text-xs text-gray-400">
+                → encryption: <span className="text-[hsl(142,76%,45%)]">AES-256</span>
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs text-primary uppercase">
+                <Label htmlFor="email" className="text-xs text-[hsl(142,76%,45%)] uppercase">
                   user_email
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                  <Input id="email" type="email" placeholder="user@domain.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm" disabled={loading} />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(142,76%,45%)]" />
+                  <Input id="email" type="email" placeholder="user@domain.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-11 bg-[hsl(215,19%,20%)]/50 border-[hsl(142,76%,45%)]/30 focus:border-[hsl(142,76%,45%)] rounded-lg font-mono text-sm text-white placeholder:text-gray-500" disabled={loading} />
                 </div>
               </div>
 
               {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs text-primary uppercase">
+                <Label htmlFor="password" className="text-xs text-[hsl(142,76%,45%)] uppercase">
                   password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-11 bg-muted/50 border-primary/30 focus:border-primary focus:shadow-glow rounded-lg font-mono text-sm" disabled={loading} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(142,76%,45%)]" />
+                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-11 bg-[hsl(215,19%,20%)]/50 border-[hsl(142,76%,45%)]/30 focus:border-[hsl(142,76%,45%)] rounded-lg font-mono text-sm text-white placeholder:text-gray-500" disabled={loading} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[hsl(142,76%,45%)] transition-colors">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -175,13 +175,13 @@ const Auth = () => {
 
               {/* Forgot Password */}
               {isLogin && <div className="flex justify-end">
-                  <button type="button" onClick={handleForgotPassword} className="text-xs text-primary hover:text-primary/80 transition-colors" disabled={loading}>
+                  <button type="button" onClick={handleForgotPassword} className="text-xs text-[hsl(142,76%,45%)] hover:text-[hsl(142,76%,55%)] transition-colors" disabled={loading}>
                     reset --password
                   </button>
                 </div>}
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-mono shadow-glow transition-all" disabled={loading}>
+              <Button type="submit" className="w-full h-11 bg-[hsl(142,76%,45%)] hover:bg-[hsl(142,76%,40%)] text-black font-mono font-bold transition-all" style={{ boxShadow: '0 0 30px hsl(142 76% 45% / 0.4)' }} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                     {isLogin ? "auth --login" : "auth --register"}
                   </>}
@@ -191,17 +191,17 @@ const Auth = () => {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-primary/20" />
+                <div className="w-full border-t border-[hsl(142,76%,45%)]/20" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-3 text-muted-foreground">// or</span>
+                <span className="bg-[hsl(217,32%,17%)] px-3 text-gray-400">// or</span>
               </div>
             </div>
 
             {/* Toggle Auth Mode */}
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-xs text-gray-400">
               {isLogin ? "// no account?" : "// have account?"}{" "}
-              <button onClick={() => setIsLogin(!isLogin)} className="text-primary font-semibold hover:text-primary/80 transition-colors" disabled={loading}>
+              <button onClick={() => setIsLogin(!isLogin)} className="text-[hsl(142,76%,45%)] font-semibold hover:text-[hsl(142,76%,55%)] transition-colors" disabled={loading}>
                 {isLogin ? "register --new" : "login --existing"}
               </button>
             </p>
@@ -209,9 +209,9 @@ const Auth = () => {
         </div>
 
         {/* Terminal Footer */}
-        <div className="bg-primary/10 border border-t-0 border-primary/30 rounded-b-xl px-4 py-2">
-          <p className="text-[10px] text-muted-foreground text-center bg-sidebar-primary">
-            <span className="text-primary">►</span> ​DEVELOPED BY NELTECH DEV GROUP      
+        <div className="bg-[hsl(142,76%,45%)]/10 border border-t-0 border-[hsl(142,76%,45%)]/30 rounded-b-xl px-4 py-2">
+          <p className="text-[10px] text-gray-400 text-center">
+            <span className="text-[hsl(142,76%,45%)]">►</span> ​DEVELOPED BY NELTECH DEV GROUP      
           </p>
         </div>
       </div>
